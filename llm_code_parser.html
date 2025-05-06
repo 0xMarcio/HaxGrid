@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code File Extractor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4285F4;
+            --secondary-color: #34A853;
+            --accent-color: #EA4335;
+            --light-gray: #f8f9fa;
+            --dark-gray: #5f6368;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--light-gray);
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 350px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #3367d6;
+        }
+        
+        .error {
+            color: var(--accent-color);
+            background-color: #ffecec;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--accent-color);
+            display: none;
+        }
+        
+        .success {
+            color: var(--secondary-color);
+            background-color: #e6f4ea;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--secondary-color);
+            display: none;
+        }
+        
+        .info {
+            background-color: var(--light-gray);
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .file-list {
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .file-list-header {
+            background-color: var(--light-gray);
+            padding: 12px 15px;
+            font-weight: 600;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .file-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        
+        .file-name {
+            font-family: monospace;
+            font-size: 14px;
+            word-break: break-all;
+        }
+        
+        .download-link {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .download-link:hover {
+            background-color: #3367d6;
+        }
+        
+        .download-all {
+            background-color: var(--secondary-color);
+            font-size: 16px;
+            padding: 10px 16px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .preview-container {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background-color: var(--light-gray);
+            border-radius: 4px;
+            overflow: auto;
+        }
+        
+        .preview-header {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--dark-gray);
+        }
+        
+        .preview-content {
+            font-family: monospace;
+            white-space: pre-wrap;
+            font-size: 13px;
+            line-height: 1.5;
+            overflow: auto;
+            max-height: 300px;
+            padding: 10px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .log-container {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .log-header {
+            background-color: var(--light-gray);
+            padding: 10px 15px;
+            font-weight: 600;
+            border-bottom: 1px solid #ddd;
+            cursor: pointer;
+        }
+        
+        .log-content {
+            max-height: 250px;
+            overflow-y: auto;
+            background-color: #f5f5f5;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            display: none;
+        }
+        
+        .log-entry {
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+        
+        .spinner {
+            display: none;
+            margin: 10px auto;
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <h1>Code File Extractor</h1>
+    
+    <div class="info">
+        <p>Paste your chat response containing code files below. The app will extract all files and package them into a zip file for download.</p>
+        <p>The app recognizes files in these formats:</p>
+        <ul>
+            <li>Code blocks with explicit filenames: <code>**filename.ext**</code> followed by code</li>
+            <li>Code blocks with filenames mentioned in the surrounding text</li>
+            <li>Code blocks with identifiable content patterns</li>
+        </ul>
+    </div>
+    
+    <div id="errorMessage" class="error"></div>
+    <div id="successMessage" class="success"></div>
+    
+    <div class="form-group">
+        <label for="textContent">Paste chat content with code blocks:</label>
+        <textarea id="textContent" placeholder="Paste your text content here..."></textarea>
+    </div>
+    
+    <button id="extractButton" onclick="extractFiles()">Extract Files</button>
+    <div id="spinner" class="spinner"></div>
+    
+    <div id="fileList" class="file-list">
+        <div class="file-list-header">Extracted Files (<span id="fileCount">0</span>)</div>
+        <div id="fileItems"></div>
+    </div>
+    
+    <button id="downloadAllButton" class="download-link download-all" onclick="downloadAllFiles()">Download All Files (.zip)</button>
+    
+    <div id="logContainer" class="log-container">
+        <div class="log-header" onclick="toggleLog()">
+            Parsing Log (Click to Toggle)
+        </div>
+        <div id="logContent" class="log-content"></div>
+    </div>
+
+    <script>
+        // Global variables
+        const extractedFiles = {};
+        const parsingLog = [];
+        
+        // Helper functions
+        function sanitizeFilename(filename) {
+            // Remove invalid characters
+            const invalidChars = /[<>:"/\\|?*]/g;
+            filename = filename.replace(invalidChars, '_');
+            
+            // Handle reserved filenames in Windows
+            const reservedNames = ['CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM2', 'COM3', 'COM4',
+                                  'COM5', 'COM6', 'COM7', 'COM8', 'COM9', 'LPT1', 'LPT2', 
+                                  'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'];
+            
+            const nameParts = filename.split('.');
+            const ext = nameParts.length > 1 ? `.${nameParts.pop()}` : '';
+            let name = nameParts.join('.');
+            
+            if (reservedNames.includes(name.toUpperCase())) {
+                name = `${name}_file`;
+            }
+            
+            // Ensure filename is not too long
+            if (name.length > 200) {
+                name = name.substring(0, 197) + '...';
+            }
+            
+            return `${name}${ext}`;
+        }
+        
+        function detectFileType(content, language) {
+            // If language is explicitly specified, use it
+            if (language) {
+                language = language.toLowerCase();
+                const extMap = {
+                    'python': '.py',
+                    'py': '.py',
+                    'javascript': '.js',
+                    'js': '.js',
+                    'typescript': '.ts',
+                    'ts': '.ts',
+                    'html': '.html',
+                    'css': '.css',
+                    'java': '.java',
+                    'c': '.c',
+                    'cpp': '.cpp',
+                    'c++': '.cpp',
+                    'csharp': '.cs',
+                    'cs': '.cs',
+                    'go': '.go',
+                    'ruby': '.rb',
+                    'rb': '.rb',
+                    'php': '.php',
+                    'rust': '.rs',
+                    'shell': '.sh',
+                    'bash': '.sh',
+                    'sh': '.sh',
+                    'sql': '.sql',
+                    'yaml': '.yaml',
+                    'yml': '.yaml',
+                    'json': '.json',
+                    'xml': '.xml',
+                    'markdown': '.md',
+                    'md': '.md',
+                    'txt': '.txt'
+                };
+                return extMap[language] || `.${language}`;
+            }
+            
+            // Try to detect type from content
+            const contentSample = content.slice(0, 1000).toLowerCase();
+            
+            // HTML detection
+            if (contentSample.includes('<!doctype html>') || contentSample.includes('<html')) {
+                return '.html';
+            }
+            
+            // Python detection
+            if ((contentSample.includes('import ') || (contentSample.includes('from ') && contentSample.includes(' import '))) ||
+               (contentSample.includes('def ') && contentSample.includes(':')) ||
+               (contentSample.includes('class ') && contentSample.includes(':'))) {
+                return '.py';
+            }
+            
+            // JavaScript detection
+            if ((contentSample.includes('function ') || contentSample.includes('const ') || 
+                 contentSample.includes('let ') || contentSample.includes('var ')) &&
+               (contentSample.includes('{') && contentSample.includes('}'))) {
+                return '.js';
+            }
+            
+            // YAML detection
+            if (contentSample.includes(':') && contentSample.includes('\n') && 
+                (contentSample.includes('-') || contentSample.includes('id:') || contentSample.includes('name:'))) {
+                return '.yaml';
+            }
+            
+            // JSON detection
+            if ((contentSample.trim().startsWith('{') && contentSample.trim().endsWith('}')) || 
+                (contentSample.trim().startsWith('[') && contentSample.trim().endsWith(']'))) {
+                try {
+                    JSON.parse(content);
+                    return '.json';
+                } catch(e) {}
+            }
+            
+            // Fallback
+            return '.txt';
+        }
+        
+        function fingerprintContent(content) {
+            // Simple hash function for JavaScript
+            let hash = 0;
+            if (content.length === 0) return hash;
+            
+            for (let i = 0; i < content.length; i++) {
+                const char = content.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convert to 32bit integer
+            }
+            
+            // Convert to hex string
+            const hashHex = (hash >>> 0).toString(16);
+            return hashHex;
+        }
+        
+        function extractPotentialFilenames(text, position) {
+            const potentialFilenames = [];
+            
+            // Get context around the position (500 chars before)
+            const startPos = Math.max(0, position - 500);
+            const context = text.substring(startPos, position);
+            
+            // Different patterns to match filenames with varying confidence levels
+            const patterns = [
+                { regex: /\*\*([\w\-\.]+\.\w+)\*\*/, confidence: 0.9 },  // **filename.ext**
+                { regex: /['"]([\w\-\.]+\.\w+)['"]/, confidence: 0.8 },  // "filename.ext"
+                { regex: /(?:file|filename|path)[:=]\s*['"]?([\w\-\.\/]+\.\w+)['"]?/, confidence: 0.85 },  // file: filename.ext
+                { regex: /[\s:]+([\w\-\.]+\.\w+)$/, confidence: 0.7 },  // filename.ext at the end of line
+                { regex: /(?:create|save|write|generate|output|into|to|as)\s+['"]?([\w\-\.]+\.\w+)['"]?/, confidence: 0.75 }  // write to filename.ext
+            ];
+            
+            for (const pattern of patterns) {
+                const matches = [...context.matchAll(new RegExp(pattern.regex, 'g'))];
+                for (const match of matches) {
+                    const filename = match[1];
+                    // Skip generic filenames
+                    let confidence = pattern.confidence;
+                    if (['file.txt', 'example.txt', 'test.txt'].includes(filename.toLowerCase())) {
+                        confidence *= 0.7;
+                    }
+                    // Prioritize filenames close to the code block
+                    const matchPos = startPos + match.index + match[0].length;
+                    const distanceFactor = 1.0 - Math.min(1.0, (position - matchPos) / 500.0);
+                    const adjustedConfidence = confidence * distanceFactor;
+                    potentialFilenames.push({ filename, confidence: adjustedConfidence });
+                }
+            }
+            
+            return potentialFilenames;
+        }
+        
+        function inferFilenameFromContent(content, blockIndex, language) {
+            if (!content.trim()) {
+                return { filename: `empty_file_${blockIndex}.txt`, confidence: 0.1 };
+            }
+            
+            // Get file extension based on content or language
+            const ext = detectFileType(content, language);
+            
+            // Try to extract meaningful name from content
+            const contentLines = content.split('\n');
+            const firstLines = contentLines.slice(0, 10);
+            const contentSample = firstLines.join('\n');
+            
+            const candidates = [];
+            
+            // Check for Python module docstring or class/function definitions
+            if (ext === '.py') {
+                const classMatch = contentSample.match(/class\s+(\w+)/);
+                if (classMatch) {
+                    const name = classMatch[1].toLowerCase();
+                    candidates.push({ filename: `${name}${ext}`, confidence: 0.7 });
+                }
+                
+                const mainFuncMatch = contentSample.match(/def\s+main/);
+                if (mainFuncMatch) {
+                    candidates.push({ filename: `main${ext}`, confidence: 0.65 });
+                }
+                
+                // Check for common Python patterns
+                if (contentSample.includes("Flask") && contentSample.includes("app = Flask")) {
+                    candidates.push({ filename: `app${ext}`, confidence: 0.8 });
+                }
+            }
+            
+            // Check for YAML with id field
+            else if (ext === '.yaml') {
+                const idMatch = contentSample.match(/id:\s*([a-zA-Z0-9_\-\.]+)/);
+                if (idMatch) {
+                    candidates.push({ filename: `${idMatch[1]}${ext}`, confidence: 0.85 });
+                }
+                
+                const nameMatch = contentSample.match(/name:\s*([^\n]+)/);
+                if (nameMatch) {
+                    const name = nameMatch[1].trim().replace(/[^\w\-]/g, '_');
+                    if (name) {
+                        candidates.push({ filename: `${name.substring(0, 30)}${ext}`, confidence: 0.7 });
+                    }
+                }
+            }
+            
+            // Add fallback generic filenames with decreasing confidence
+            const contentHash = fingerprintContent(content).substring(0, 8);
+            let typeName = ext.startsWith('.') ? ext.substring(1) : ext;
+            
+            candidates.push(
+                { filename: `file_${blockIndex}_${typeName}`, confidence: 0.4 },
+                { filename: `code_${contentHash}${ext}`, confidence: 0.3 },
+                { filename: `snippet_${blockIndex}${ext}`, confidence: 0.2 }
+            );
+            
+            // Return the highest confidence candidate
+            candidates.sort((a, b) => b.confidence - a.confidence);
+            return candidates[0];
+        }
+        
+        function findBestFilename(content, blockMatch, text, blockIndex, language) {
+            const blockStart = blockMatch.index;
+            
+            // First, look for potential filenames in surrounding text
+            const potentialFilenames = extractPotentialFilenames(text, blockStart);
+            
+            // Then, infer filename from content
+            const inferred = inferFilenameFromContent(content, blockIndex, language);
+            potentialFilenames.push(inferred);
+            
+            // Find the highest confidence filename
+            potentialFilenames.sort((a, b) => b.confidence - a.confidence);
+            
+            if (potentialFilenames.length > 0 && potentialFilenames[0].confidence >= 0.5) {
+                return sanitizeFilename(potentialFilenames[0].filename);
+            }
+            
+            // Fallback with sanitized inferred filename
+            return sanitizeFilename(inferred.filename);
+        }
+        
+        function extractFiles() {
+            // Reset
+            Object.keys(extractedFiles).forEach(key => delete extractedFiles[key]);
+            parsingLog.length = 0;
+            
+            // Show spinner, hide messages
+            document.getElementById('spinner').style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+            document.getElementById('fileList').style.display = 'none';
+            document.getElementById('downloadAllButton').style.display = 'none';
+            document.getElementById('fileItems').innerHTML = '';
+            document.getElementById('logContent').innerHTML = '';
+            
+            // Get the text content
+            const textContent = document.getElementById('textContent').value.trim();
+            
+            if (!textContent) {
+                showError('Please provide some text content.');
+                return;
+            }
+            
+            // Use setTimeout to avoid blocking the UI
+            setTimeout(() => {
+                try {
+                    // Start parsing
+                    parsingLog.push(`Starting text parsing. Text length: ${textContent.length}`);
+                    
+                    // STRATEGY 1: Look for explicit markdown-style file blocks
+                    const pattern1 = /\*\*([^*\n]+?)\*\*\s*```(\w+)?\n(.*?)```/gs;
+                    const explicitMatches = [...textContent.matchAll(pattern1)];
+                    parsingLog.push(`Strategy 1: Found ${explicitMatches.length} potential files with **filename** pattern`);
+                    
+                    // Store ranges of text already processed
+                    const processedRanges = [];
+                    const fingerprints = {};
+                    
+                    // Process explicit filename matches
+                    for (const match of explicitMatches) {
+                        const filename = match[1].trim();
+                        const language = match[2] || "";
+                        const content = match[3].trim();
+                        
+                        // Skip empty content
+                        if (!content) {
+                            parsingLog.push(`Skipping empty content for filename: ${filename}`);
+                            continue;
+                        }
+                        
+                        // Mark this range as processed
+                        processedRanges.push([match.index, match.index + match[0].length]);
+                        
+                        // Make sure filename has proper extension based on language or content
+                        let processedFilename = filename;
+                        if (!processedFilename.includes('.')) {
+                            const ext = detectFileType(content, language);
+                            processedFilename = `${processedFilename}${ext}`;
+                        }
+                        
+                        // Sanitize the filename
+                        processedFilename = sanitizeFilename(processedFilename);
+                        
+                        // Generate content fingerprint for deduplication
+                        const fingerprint = fingerprintContent(content);
+                        
+                        // Skip exact duplicates
+                        if (fingerprints[fingerprint]) {
+                            parsingLog.push(`Skipping duplicate content for: ${processedFilename}`);
+                            continue;
+                        }
+                        
+                        // Handle case where same filename has different content
+                        if (extractedFiles[processedFilename]) {
+                            const existingFingerprint = fingerprintContent(extractedFiles[processedFilename]);
+                            if (existingFingerprint !== fingerprint) {
+                                // Create a unique filename using a short hash
+                                const extIndex = processedFilename.lastIndexOf('.');
+                                const baseName = extIndex > 0 ? processedFilename.substring(0, extIndex) : processedFilename;
+                                const ext = extIndex > 0 ? processedFilename.substring(extIndex) : '';
+                                const newFilename = `${baseName}_${fingerprint.substring(0, 8)}${ext}`;
+                                
+                                extractedFiles[newFilename] = content;
+                                fingerprints[fingerprint] = newFilename;
+                                parsingLog.push(`Renamed duplicate filename with different content: ${processedFilename} → ${newFilename}`);
+                            } else {
+                                parsingLog.push(`Skipping exact duplicate: ${processedFilename}`);
+                            }
+                        } else {
+                            // First time seeing this filename
+                            extractedFiles[processedFilename] = content;
+                            fingerprints[fingerprint] = processedFilename;
+                            parsingLog.push(`Added file with explicit name: ${processedFilename}`);
+                        }
+                    }
+                    
+                    // STRATEGY 2: Process all remaining code blocks
+                    const codeBlockPattern = /```(\w+)?\n(.*?)```/gs;
+                    const allCodeBlocks = [...textContent.matchAll(codeBlockPattern)];
+                    parsingLog.push(`Strategy 2: Found ${allCodeBlocks.length} total code blocks`);
+                    
+                    for (let i = 0; i < allCodeBlocks.length; i++) {
+                        const block = allCodeBlocks[i];
+                        
+                        // Skip if this range was already processed in Strategy 1
+                        const blockStart = block.index;
+                        const blockEnd = block.index + block[0].length;
+                        
+                        if (processedRanges.some(([start, end]) => start <= blockStart && end >= blockEnd)) {
+                            continue;
+                        }
+                        
+                        const language = block[1] || "";
+                        const content = block[2].trim();
+                        
+                        // Skip empty content
+                        if (!content || content.length < 5) {
+                            continue;
+                        }
+                        
+                        // Generate content fingerprint
+                        const fingerprint = fingerprintContent(content);
+                        
+                        // Skip duplicates
+                        if (fingerprints[fingerprint]) {
+                            continue;
+                        }
+                        
+                        // Try to find the best filename for this code block
+                        const filename = findBestFilename(content, block, textContent, i+1, language);
+                        
+                        // Handle duplicate filenames
+                        if (extractedFiles[filename]) {
+                            // Check if content is significantly different
+                            const existingFingerprint = fingerprintContent(extractedFiles[filename]);
+                            if (existingFingerprint !== fingerprint) {
+                                // Create a unique filename
+                                const extIndex = filename.lastIndexOf('.');
+                                const baseName = extIndex > 0 ? filename.substring(0, extIndex) : filename;
+                                const ext = extIndex > 0 ? filename.substring(extIndex) : '';
+                                const newFilename = `${baseName}_${fingerprint.substring(0, 8)}${ext}`;
+                                
+                                extractedFiles[newFilename] = content;
+                                fingerprints[fingerprint] = newFilename;
+                                parsingLog.push(`Added file with unique name: ${newFilename}`);
+                            }
+                        } else {
+                            // Store the file
+                            extractedFiles[filename] = content;
+                            fingerprints[fingerprint] = filename;
+                            parsingLog.push(`Added file with inferred name: ${filename}`);
+                        }
+                    }
+                    
+                    // STRATEGY 3: If still no files found, try more aggressive patterns
+                    if (Object.keys(extractedFiles).length === 0) {
+                        parsingLog.push("No files found with standard strategies, trying more aggressive pattern matching");
+                        
+                        // Try to match unconventional code blocks
+                        const altPatterns = [
+                            { regex: /```(.*?)```/gs, name: "Triple backticks without language" },
+                            { regex: /`{3,}(.*?)`{3,}/gs, name: "Multiple backticks" },
+                            { regex: /<pre><code>(.*?)<\/code><\/pre>/gs, name: "HTML code blocks" },
+                            { regex: /<code>(.*?)<\/code>/gs, name: "Inline HTML code" }
+                        ];
+                        
+                        for (let i = 0; i < altPatterns.length; i++) {
+                            const pattern = altPatterns[i];
+                            const matches = [...textContent.matchAll(pattern.regex)];
+                            parsingLog.push(`Pattern "${pattern.name}": Found ${matches.length} matches`);
+                            
+                            for (let j = 0; j < matches.length; j++) {
+                                const content = matches[j][1].trim();
+                                
+                                // Skip empty content
+                                if (!content || content.length < 10) {
+                                    continue;
+                                }
+                                
+                                // Generate content fingerprint
+                                const fingerprint = fingerprintContent(content);
+                                
+                                // Skip duplicates
+                                if (fingerprints[fingerprint]) {
+                                    continue;
+                                }
+                                
+                                // Infer filetype from content
+                                const ext = detectFileType(content);
+                                const filename = `alternative_code_${i}_${j}${ext}`;
+                                
+                                // Store the file
+                                extractedFiles[filename] = content;
+                                fingerprints[fingerprint] = filename;
+                                parsingLog.push(`Added file with alternative pattern: ${filename}`);
+                            }
+                        }
+                    }
+                    
+                    // Display results
+                    const fileCount = Object.keys(extractedFiles).length;
+                    
+                    if (fileCount > 0) {
+                        // Log success
+                        parsingLog.push(`Successfully extracted ${fileCount} unique files`);
+                        Object.keys(extractedFiles).forEach(filename => {
+                            parsingLog.push(`- ${filename}`);
+                        });
+                        
+                        document.getElementById('fileCount').textContent = fileCount;
+                        
+                        // Display files
+                        const fileItems = document.getElementById('fileItems');
+                        fileItems.innerHTML = '';
+                        
+                        Object.keys(extractedFiles).forEach((filename, index) => {
+                            const content = extractedFiles[filename];
+                            const fileItem = document.createElement('div');
+                            fileItem.className = 'file-item';
+                            
+                            const extIndex = filename.lastIndexOf('.');
+                            const ext = extIndex > 0 ? filename.substring(extIndex + 1) : '';
+                            
+                            fileItem.innerHTML = `
+                                <div class="file-name">
+                                    ${filename}
+                                    <span class="file-ext">${ext}</span>
+                                    <button class="toggle-preview" onclick="togglePreview('preview-${index}')">Preview</button>
+                                </div>
+                                <button class="download-link" onclick="downloadFile('${filename}')">Download</button>
+                            `;
+                            fileItems.appendChild(fileItem);
+                            
+                            // Add preview container
+                            const previewContainer = document.createElement('div');
+                            previewContainer.className = 'preview-container';
+                            previewContainer.id = `preview-${index}`;
+                            previewContainer.innerHTML = `
+                                <div class="preview-header">Preview: ${filename}</div>
+                                <div class="preview-content">${escapeHtml(content)}</div>
+                            `;
+                            fileItems.appendChild(previewContainer);
+                        });
+                        
+                        // Show file list and download button
+                        document.getElementById('fileList').style.display = 'block';
+                        document.getElementById('downloadAllButton').style.display = 'block';
+                        document.getElementById('successMessage').textContent = `Successfully extracted ${fileCount} files.`;
+                        document.getElementById('successMessage').style.display = 'block';
+                    } else {
+                        parsingLog.push("No files were found in the text");
+                        showError('No files were found in the provided text. Please check your input.');
+                    }
+                    
+                    // Display parsing log
+                    const logContent = document.getElementById('logContent');
+                    logContent.innerHTML = '';
+                    parsingLog.forEach(entry => {
+                        const logEntry = document.createElement('div');
+                        logEntry.className = 'log-entry';
+                        logEntry.textContent = entry;
+                        logContent.appendChild(logEntry);
+                    });
+                    document.getElementById('logContainer').style.display = 'block';
+                    
+                } catch (error) {
+                    console.error('Error extracting files:', error);
+                    showError(`An error occurred: ${error.message}`);
+                    
+                    // Log the error
+                    parsingLog.push(`ERROR: ${error.message}`);
+                    parsingLog.push(error.stack);
+                    
+                    // Display error log
+                    const logContent = document.getElementById('logContent');
+                    logContent.innerHTML = '';
+                    parsingLog.forEach(entry => {
+                        const logEntry = document.createElement('div');
+                        logEntry.className = 'log-entry';
+                        logEntry.textContent = entry;
+                        logContent.appendChild(logEntry);
+                    });
+                    document.getElementById('logContainer').style.display = 'block';
+                } finally {
+                    // Hide spinner
+                    document.getElementById('spinner').style.display = 'none';
+                }
+            }, 100);
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            document.getElementById('spinner').style.display = 'none';
+        }
+        
+        function togglePreview(previewId) {
+            const previewElement = document.getElementById(previewId);
+            if (previewElement.style.display === 'block') {
+                previewElement.style.display = 'none';
+            } else {
+                previewElement.style.display = 'block';
+            }
+        }
+        
+        function toggleLog() {
+            const logContent = document.getElementById('logContent');
+            if (logContent.style.display === 'block') {
+                logContent.style.display = 'none';
+            } else {
+                logContent.style.display = 'block';
+            }
+        }
+        
+        function downloadFile(filename) {
+            const content = extractedFiles[filename];
+            if (!content) {
+                showError(`File not found: ${filename}`);
+                return;
+            }
+            
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        function downloadAllFiles() {
+            const fileCount = Object.keys(extractedFiles).length;
+            if (fileCount === 0) {
+                showError('No files to download.');
+                return;
+            }
+            
+            document.getElementById('spinner').style.display = 'block';
+            
+            // Create a new JSZip instance
+            const zip = new JSZip();
+            
+            // Add files to the zip
+            Object.keys(extractedFiles).forEach(filename => {
+                zip.file(filename, extractedFiles[filename]);
+            });
+
+            // Generate the zip file
+            zip.generateAsync({ type: 'blob' })
+                .then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+                    a.href = url;
+                    a.download = `extracted_files_${timestamp}.zip`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    document.getElementById('spinner').style.display = 'none';
+                })
+                .catch(error => {
+                    console.error('Error creating ZIP file:', error);
+                    showError(`Error creating ZIP file: ${error.message}`);
+                    document.getElementById('spinner').style.display = 'none';
+                });
+        }
+    </script>
+</body>
+</html>

