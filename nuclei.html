@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ Nuclei Templates Explorer Pro ⚡</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+             theme: {
+                extend: {
+                    colors: {
+                        primary: {"50":"#eff6ff","100":"#dbeafe","200":"#bfdbfe","300":"#93c5fd","400":"#60a5fa","500":"#3b82f6","600":"#2563eb","700":"#1d4ed8","800":"#1e40af","900":"#1e3a8a","950":"#172554"},
+                        secondary: {"50":"#fdf2f8","100":"#fce7f3","200":"#fbcfe8","300":"#f9a8d4","400":"#f472b6","500":"#ec4899","600":"#db2777","700":"#be185d","800":"#9d174d","900":"#831843","950":"#500724"},
+                    },
+                    animation: {
+                         'gradient-x': 'gradient-x 10s ease infinite',
+                         'bounce-slow': 'bounce 3s infinite',
+                         'fade-in': 'fadeIn 0.5s ease-out',
+                         'fade-in-delay': 'fadeIn 0.8s ease-out forwards',
+                         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                     keyframes: {
+                         'gradient-x': {
+                             '0%, 100%': { 'background-position': '0% 50%' },
+                             '20%': { 'background-position': '100% 50%' },
+                         },
+                         fadeIn: {
+                             '0%': { opacity: 0, transform: 'translateY(10px)' },
+                             '200%': { opacity: 1, transform: 'translateY(0)' },
+                         },
+                         pulse: {
+                              '0%, 100%': { opacity: 1 },
+                              '50%': { opacity: .5 },
+                          }
+                     },
+                     backgroundSize: {
+                         '300%': '300% 300%',
+                     }
+                }
+            },
+            darkMode: 'class',
+        }
+    </script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/yaml.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
+    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css" />
+    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/translucent.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+        :root {
+            --critical-gradient: linear-gradient(#f8717130, #dc262678);
+            --high-gradient: linear-gradient(#f97316, #ea580c);
+            --medium-gradient: linear-gradient(#facc15, #eab308);
+            --low-gradient: linear-gradient(#22d3ee, #06b6d4);
+            --info-gradient: linear-gradient(#a3a3a3, #737373);
+            --unknown-gradient: linear-gradient(#c084fc, #a855f7);
+        }
+        body { font-family: 'Outfit', sans-serif; }
+        code, pre, .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .rainbow-text { background: linear-gradient(90deg, #a855f7, #ec4899, #f97316, #eab308, #22d3ee, #3b82f6); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: gradient-x 5s linear infinite; }
+        .cyber-button { position: relative; padding: 10px 20px; border: 1px solid #4f46e5; color: white; background-color: rgba(79, 70, 229, 0.2); overflow: hidden; transition: all 0.3s ease; font-weight: 500; border-radius: 0.5rem; display: inline-flex; align-items: center; justify-content: center; }
+        .cyber-button::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(79, 70, 229, 0.7), transparent); transition: left 0.4s ease; }
+        .cyber-button:hover { background-color: rgba(79, 70, 229, 0.4); border-color: #6366f1; box-shadow: 0 0 15px rgba(79, 70, 229, 0.5); }
+        .cyber-button:hover::before { left: 100%; }
+        .glass-effect { background: rgba(31, 41, 55, 0.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .hover-card-effect { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .hover-card-effect:hover { transform: translateY(-5px); box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.2), 0 8px 10px -6px rgba(79, 70, 229, 0.1); }
+        .cyber-tag { display: inline-block; padding: 0.2rem 0.6rem; font-size: 0.75rem; font-weight: 500; color: white; border-radius: 9999px; background: var(--tag-bg, #4f46e5); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .cyber-spinner { width: 56px; height: 56px; border-radius: 50%; background: conic-gradient(#0000 10%, #6366f1); -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 9px), #000 0); mask: radial-gradient(farthest-side, #0000 calc(100% - 9px), #000 0); animation: spinner-rotate 1s infinite linear; }
+        @keyframes spinner-rotate { 100% { transform: rotate(1turn) } }
+        .neon-text { text-shadow: 0 0 5px #6366f1, 0 0 10px #6366f1, 0 0 15px #818cf8, 0 0 20px #818cf8; }
+        .filter-active { background-color: #4f46e5 !important; color: white !important; border-color: #6366f1 !important; box-shadow: 0 0 8px rgba(79, 70, 229, 0.6); }
+        .filter-active:hover { background-color: #4338ca !important; }
+        #modal-code-container pre { max-height: calc(90vh - 25rem); overflow-y: auto; }
+        .favorite-active i, #modal-favorite-btn.favorite-active i { color: #facc15; font-weight: 900; }
+        .main-content { display: none; opacity: 0; transition: opacity 0.5s ease-in-out; }
+        .main-content.visible { display: block; opacity: 1; }
+        .dark body { background-color: #111827; background-image: linear-gradient(to bottom right, #111827, #1f2937); color: #d1d5db; }
+        .dark .text-white { color: #f9fafb; }
+        .dark .text-gray-400 { color: #9ca3af; }
+        .dark .text-gray-500 { color: #6b7280; }
+        .dark .bg-gray-800 { background-color: #1f2937; }
+        .dark .bg-gray-900 { background-color: #111827; }
+        .dark .border-gray-700 { border-color: #374151; }
+        .dark .hover\:bg-gray-700:hover { background-color: #374151; }
+        .dark .hover\:bg-gray-600:hover { background-color: #4b5563; }
+        .dark .placeholder-gray-400::placeholder { color: #9ca3af; }
+        .dark #toast { background-color: #1f2937; border-color: #374151; color: #f9fafb; }
+        .dark #toast .text-gray-400 { color: #9ca3af; }
+        body:not(.dark) { background-color: #f9fafb; background-image: linear-gradient(to bottom right, #f9fafb, #e5e7eb); color: #1f2937; }
+        body:not(.dark) .text-white { color: #1f2937; }
+        body:not(.dark) .text-gray-300 { color: #4b5563; }
+        body:not(.dark) .text-gray-400 { color: #6b7280; }
+        body:not(.dark) .text-gray-500 { color: #4b5563; }
+        body:not(.dark) .bg-gradient-to-br { background-image: linear-gradient(to bottom right, #ffffff, #f3f4f6); }
+        body:not(.dark) .bg-gray-800 { background-color: #e5e7eb; }
+        body:not(.dark) .bg-gray-900 { background-color: #f3f4f6; }
+        body:not(.dark) .border-gray-700 { border-color: #d1d5db; }
+        body:not(.dark) .hover\:bg-gray-700:hover { background-color: #d1d5db; }
+        body:not(.dark) .hover\:bg-gray-600:hover { background-color: #9ca3af; }
+        body:not(.dark) .placeholder-gray-400::placeholder { color: #6b7280; }
+        body:not(.dark) .cyber-button { color: #1f2937; background-color: rgba(229, 231, 235, 0.5); border-color: #9ca3af; }
+        body:not(.dark) .cyber-button:hover { background-color: rgba(209, 213, 219, 0.7); border-color: #6b7280; }
+        body:not(.dark) #toast { background-color: #ffffff; border-color: #d1d5db; color: #1f2937; }
+        body:not(.dark) #toast .text-gray-400 { color: #6b7280; }
+        body:not(.dark) .rainbow-text { background: linear-gradient(90deg, #7e22ce, #be185d, #c2410c, #a16207, #0e7490, #1d4ed8); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: gradient-x 5s linear infinite; }
+        body:not(.dark) .filter-active { background-color: #3b82f6 !important; color: white !important; border-color: #3b82f6 !important; }
+        body:not(.dark) .filter-active:hover { background-color: #2563eb !important; }
+        body:not(.dark) .favorite-active i, body:not(.dark) #modal-favorite-btn.favorite-active i { color: #f59e0b; }
+        body:not(.dark) #template-modal .bg-gradient-to-br { background-image: linear-gradient(to bottom right, #f3f4f6, #e5e7eb); }
+        body:not(.dark) #modal-code-container pre { background-color: #f9fafb; }
+        body:not(.dark) #modal-code-container code { color: #1f2937; }
+        body:not(.dark) .hljs { background: #f9fafb !important; color: #1f2937 !important; }
+        .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #4b5563; transition: .4s; border-radius: 24px; }
+        .toggle-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .toggle-slider { background-color: #4f46e5; }
+        input:checked + .toggle-slider:before { transform: translateX(20px); }
+        body:not(.dark) .toggle-slider { background-color: #d1d5db; }
+        body:not(.dark) input:checked + .toggle-slider { background-color: #3b82f6; }
+    </style>
+</head>
+<body class="min-h-screen transition-colors duration-300">
+
+    <div id="loading-screen" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-gray-900 backdrop-blur-md">
+        <div class="cyber-spinner"></div>
+        <div class="mt-6 text-xl font-semibold text-white relative">
+            <span id="loading-text" class="neon-text">Initializing...</span>
+        </div>
+        <div class="mt-4 w-64 h-2 bg-gray-700 rounded-full overflow-hidden">
+            <div id="loading-bar" class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <p id="loading-error" class="text-red-500 mt-4 text-center px-4 hidden"></p>
+    </div>
+
+    <div class="container mx-auto px-4 py-8 relative main-content">
+        <header class="flex flex-col md:flex-row items-center justify-between mb-12 relative">
+            <div class="flex items-center space-x-4">
+                 <div class="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl shadow-lg">
+                    <i class="fas fa-shield-halved text-2xl text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-bold rainbow-text">Nuclei Explorer Pro</h1>
+                    <p class="text-gray-400 text-sm md:text-base">Your Ultimate Template Management System</p>
+                </div>
+            </div>
+             <div class="mt-4 md:mt-0 flex items-center space-x-2 md:space-x-4">
+                <button id="theme-toggle" class="bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-full transition-all" title="Toggle Theme (t)">
+                    <i class="fas fa-sun"></i>
+                </button>
+                <button id="help-button" class="bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-full transition-all" title="Help">
+                    <i class="fas fa-question"></i>
+                </button>
+                <button id="github-button" onclick="window.open('https://github.com/projectdiscovery/nuclei-templates', '_blank')" class="flex items-center bg-gray-800 hover:bg-gray-700 text-white px-3 py-2 rounded-lg transition-all" title="View Nuclei Templates on GitHub">
+                    <i class="fab fa-github mr-2"></i>
+                    <span class="hidden md:inline">GitHub</span>
+                </button>
+                <button id="settings-button" class="bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-full transition-all" title="Settings (Ctrl+,)">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-lg p-6 hover-card-effect border border-gray-700">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-gray-400 text-sm mb-1">Total Templates</p>
+                        <h3 class="text-3xl font-bold text-white"><span id="stat-total-templates">0</span></h3>
+                    </div>
+                    <div class="p-4 bg-gray-700 bg-opacity-50 rounded-lg">
+                        <i class="fas fa-database text-blue-400 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-lg p-6 hover-card-effect border border-gray-700">
+                 <div class="flex justify-between items-center">
+                     <div>
+                        <p class="text-gray-400 text-sm mb-1">Critical Severity</p>
+                        <h3 class="text-3xl font-bold text-red-500"><span id="stat-critical-count">0</span></h3>
+                        <p class="text-red-400 text-sm mt-1"><span id="stat-critical-percentage">0%</span> of total</p>
+                    </div>
+                    <div class="p-4 bg-red-900 bg-opacity-30 rounded-lg">
+                        <i class="fas fa-radiation text-red-500 text-2xl"></i>
+                    </div>
+                 </div>
+            </div>
+             <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-lg p-6 hover-card-effect border border-gray-700">
+                 <div class="flex justify-between items-center">
+                     <div>
+                        <p class="text-gray-400 text-sm mb-1">High Severity</p>
+                        <h3 class="text-3xl font-bold text-orange-500"><span id="stat-high-count">0</span></h3>
+                         <p class="text-orange-400 text-sm mt-1"><span id="stat-high-percentage">0%</span> of total</p>
+                    </div>
+                    <div class="p-4 bg-orange-900 bg-opacity-30 rounded-lg">
+                         <i class="fas fa-exclamation-triangle text-orange-500 text-2xl"></i>
+                    </div>
+                 </div>
+            </div>
+             <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-lg p-6 hover-card-effect border border-gray-700">
+                 <div class="flex justify-between items-center">
+                     <div>
+                        <p class="text-gray-400 text-sm mb-1">Medium Severity</p>
+                        <h3 class="text-3xl font-bold text-yellow-500"><span id="stat-medium-count">0</span></h3>
+                         <p class="text-yellow-400 text-sm mt-1"><span id="stat-medium-percentage">0%</span> of total</p>
+                    </div>
+                    <div class="p-4 bg-yellow-900 bg-opacity-30 rounded-lg">
+                         <i class="fas fa-exclamation-circle text-yellow-500 text-2xl"></i>
+                    </div>
+                 </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+            <div class="lg:col-span-2 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-lg p-6 hover-card-effect border border-gray-700">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold text-white">Severity Distribution</h3>
+                </div>
+                <div class="h-64 md:h-80 relative">
+                     <canvas id="severity-chart"></canvas>
+                     <div id="chart-center-text" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                         <span class="text-3xl font-bold text-white" id="chart-total-count">0</span>
+                         <span class="text-sm text-gray-400">Total</span>
+                     </div>
+                </div>
+                <div id="severity-legend" class="flex flex-wrap justify-center mt-6 gap-x-4 gap-y-2">
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-lg p-6 hover-card-effect border border-gray-700 flex flex-col">
+                 <h3 class="text-xl font-semibold text-white mb-4">Top Authors</h3>
+                 <div id="top-authors-list" class="space-y-2 flex-1 overflow-y-auto pr-2 mb-6 max-h-48">
+                    <p class="text-gray-500 text-sm">Loading...</p>
+                 </div>
+                 <h3 class="text-xl font-semibold text-white mb-4">Top Tags</h3>
+                 <div id="top-tags-list" class="space-y-2 flex-1 overflow-y-auto pr-2 max-h-48">
+                     <p class="text-gray-500 text-sm">Loading...</p>
+                 </div>
+            </div>
+        </div>
+
+        <div class="glass-effect border border-gray-700 rounded-xl shadow-lg p-6 mb-10 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-600 rounded-full filter blur-3xl opacity-[0.07] -z-10 animate-pulse-slow"></div>
+            <div class="absolute bottom-0 left-0 w-64 h-64 bg-purple-600 rounded-full filter blur-3xl opacity-[0.07] -z-10 animate-pulse-slow animation-delay-2000"></div>
+
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-white flex items-center">
+                    <i class="fas fa-search text-indigo-400 mr-2"></i>
+                    Search & Filters
+                </h2>
+                <div class="flex flex-wrap mt-4 md:mt-0 gap-2">
+                    <button id="remote-repo-btn" class="cyber-button text-sm py-2 opacity-50 cursor-not-allowed" title="Feature not implemented">
+                        <i class="fas fa-cloud-download-alt mr-2"></i>Load Remote <span class="hidden sm:inline ml-1">Repository</span>
+                    </button>
+                    <button id="reset-filters-btn" class="cyber-button bg-gray-700 hover:bg-gray-600 text-sm py-2">
+                        <i class="fas fa-undo mr-2"></i>Reset All
+                    </button>
+                    <button id="export-json-btn" class="cyber-button text-sm py-2">
+                        <i class="fas fa-file-export mr-2"></i>Export Visible
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-4 mb-6">
+                <div class="flex-1 relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                    <input type="text" id="global-search" placeholder="Search templates by name, ID, description, tag, author, content... (Ctrl+/ or /)"
+                        class="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                </div>
+                 <div class="flex gap-2 flex-shrink-0">
+                    <button id="favorites-btn" class="whitespace-nowrap bg-gray-800 hover:bg-gray-700 text-white px-4 py-3 rounded-lg transition-all border border-gray-700 flex items-center justify-center" title="Toggle Favorites Filter (f)">
+                        <i class="fas fa-star text-gray-400 mr-2"></i>Favorites
+                    </button>
+                 </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Severity</label>
+                    <div id="severity-filter-buttons" class="flex flex-wrap gap-2">
+                         <p class="text-gray-500 text-sm">Loading...</p>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="type-filter" class="block text-sm font-medium text-gray-400 mb-2">Protocol/Type</label>
+                    <div class="relative">
+                        <select id="type-filter" class="block w-full pl-4 pr-10 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500" disabled>
+                            <option value="">All Types</option>
+                             <option value="" disabled>Loading...</option>
+                        </select>
+                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+
+                 <div>
+                    <label for="author-filter" class="block text-sm font-medium text-gray-400 mb-2">Author</label>
+                    <div class="relative">
+                        <select id="author-filter" class="block w-full pl-4 pr-10 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500" disabled>
+                            <option value="">All Authors</option>
+                             <option value="" disabled>Loading...</option>
+                        </select>
+                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+
+                 <div>
+                    <label for="tags-filter" class="block text-sm font-medium text-gray-400 mb-2">Tags (comma-separated, AND)</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-tags text-gray-400"></i>
+                        </div>
+                        <input type="text" id="tags-filter" placeholder="e.g. wordpress,xss,rce"
+                            class="block w-full pl-10 pr-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row justify-between items-center mb-4">
+             <div class="text-gray-400 mb-4 md:mb-0">
+                Showing <span id="showing-count" class="font-semibold text-white">0</span>-<span id="showing-to-count" class="font-semibold text-white">0</span> of <span id="total-count" class="font-semibold text-white">0</span> templates
+                <span id="filter-indicator" class="ml-2 text-sm text-indigo-400 hidden">
+                    <i class="fas fa-filter"></i> Filters applied
+                </span>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+                <div class="flex items-center">
+                    <label for="sort-by" class="text-sm text-gray-400 mr-2 whitespace-nowrap">Sort by:</label>
+                    <select id="sort-by" class="bg-gray-800 border border-gray-700 rounded-lg text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm appearance-none pr-8">
+                        <option value="updated_at">Last Updated</option>
+                        <option value="severity">Severity</option>
+                        <option value="name">Name (A-Z)</option>
+                        <option value="id">ID (A-Z)</option>
+                        <option value="author">Author (A-Z)</option>
+                        <option value="type">Type (A-Z)</option>
+                         <option value="created_at">Creation Date</option>
+                    </select>
+                </div>
+
+                <button id="sort-order" class="bg-gray-800 border border-gray-700 rounded-lg p-2 hover:bg-gray-700" title="Toggle Sort Order">
+                    <i class="fas fa-sort-amount-down text-white"></i>
+                </button>
+
+                <div class="flex items-center">
+                    <label for="view-type" class="text-sm text-gray-400 mr-2 whitespace-nowrap">View as:</label>
+                    <div class="flex border border-gray-700 rounded-lg overflow-hidden">
+                        <button id="grid-view-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2" title="Grid View (Alt+1)">
+                            <i class="fas fa-th-large"></i>
+                        </button>
+                        <button id="list-view-btn" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-2" title="List View (Alt+2)">
+                            <i class="fas fa-list"></i>
+                        </button>
+                        <button id="table-view-btn" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-2" title="Table View (Alt+3)">
+                            <i class="fas fa-table"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="grid-view" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+            <div class="text-center col-span-full py-10 text-gray-500">Loading templates...</div>
+        </div>
+
+        <div id="list-view" class="hidden space-y-4 mb-10">
+             <div class="text-center py-10 text-gray-500">Loading templates...</div>
+        </div>
+
+        <div id="table-view" class="hidden mb-10">
+            <div class="overflow-x-auto rounded-xl border border-gray-700">
+                <table class="min-w-full divide-y divide-gray-700">
+                    <thead class="bg-gray-800">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Name</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">ID</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Severity</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Type</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Tags</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Author(s)</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Updated</th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body" class="bg-gray-900 divide-y divide-gray-800">
+                         <tr><td colspan="8" class="text-center py-10 text-gray-500">Loading templates...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+            <div class="flex items-center">
+                <label for="per-page" class="text-gray-400 text-sm mr-2">Per page:</label>
+                <select id="per-page" class="bg-gray-800 border border-gray-700 rounded-lg text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm appearance-none pr-8">
+                    <option value="9">9</option>
+                    <option value="15" selected>15</option>
+                    <option value="30">30</option>
+                    <option value="60">60</option>
+                    <option value="99">99</option>
+                </select>
+            </div>
+
+            <div id="pagination-controls" class="flex items-center">
+                <button id="first-page" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-2 rounded-l-lg border border-r-0 border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed" title="First Page (←)">
+                    <i class="fas fa-angle-double-left"></i>
+                </button>
+                <button id="prev-page" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-2 border-t border-b border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed" title="Previous Page (←)">
+                    <i class="fas fa-angle-left"></i>
+                </button>
+                <div class="bg-gray-800 text-white px-4 py-2 border-t border-b border-gray-700 text-sm">
+                    Page <span id="current-page">1</span> of <span id="total-pages">1</span>
+                </div>
+                <button id="next-page" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-2 border-t border-b border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed" title="Next Page (→)">
+                    <i class="fas fa-angle-right"></i>
+                </button>
+                <button id="last-page" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-2 rounded-r-lg border border-l-0 border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed" title="Last Page (→)">
+                    <i class="fas fa-angle-double-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <footer class="text-center text-gray-500 text-sm mt-16">
+            Nuclei Explorer Pro - Data from local templates.json
+        </footer>
+    </div>
+
+    <div id="template-modal" class="fixed inset-0 z-[60] flex items-center justify-center hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-70 backdrop-blur-sm modal-bg-close"></div>
+        <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden relative z-[61] border border-gray-700 flex flex-col m-4">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-700 flex-shrink-0">
+                <h3 class="text-xl font-semibold text-white flex items-center gap-2 flex-wrap" id="modal-title-container">
+                    <span id="modal-title" class="mr-2">Template Name</span>
+                    <span id="modal-severity-badge"></span>
+                    <span id="modal-status-icon"></span>
+                </h3>
+                <button id="modal-close" class="text-gray-400 hover:text-white transition-colors" title="Close (Esc)">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="flex flex-col md:flex-row flex-grow overflow-hidden">
+                <div class="w-full md:w-1/3 p-6 overflow-y-auto border-r border-gray-700 flex-shrink-0 md:flex-shrink md:basis-1/3">
+                    <div class="mb-6">
+                         <h4 class="text-sm font-medium text-gray-400 mb-2 uppercase tracking-wider">Basic Information</h4>
+                         <table class="w-full text-sm">
+                             <tbody>
+                                <tr class="border-b border-gray-700"><td class="py-1.5 text-gray-400 w-1/4 font-medium">ID</td><td id="modal-info-id" class="py-1.5 text-white break-all font-mono"></td></tr>
+                                <tr class="border-b border-gray-700"><td class="py-1.5 text-gray-400 font-medium">Author(s)</td><td id="modal-info-author" class="py-1.5 text-white"></td></tr>
+                                <tr class="border-b border-gray-700"><td class="py-1.5 text-gray-400 font-medium">Type</td><td id="modal-info-type" class="py-1.5 text-white"></td></tr>
+                                <tr class="border-b border-gray-700"><td class="py-1.5 text-gray-400 font-medium">Created</td><td id="modal-info-created" class="py-1.5 text-white"></td></tr>
+                                <tr class="border-b border-gray-700"><td class="py-1.5 text-gray-400 font-medium">Updated</td><td id="modal-info-updated" class="py-1.5 text-white"></td></tr>
+                                <tr class="border-b border-gray-700"><td class="py-1.5 text-gray-400 font-medium">Status</td><td id="modal-info-status" class="py-1.5 text-white"></td></tr>
+                                <tr><td class="py-1.5 text-gray-400 font-medium">Path</td><td id="modal-info-path" class="py-1.5 text-white break-all text-xs"></td></tr>
+                             </tbody>
+                         </table>
+                    </div>
+
+                     <div class="mb-6" id="modal-cve-info-container" >
+                         <h4 class="text-sm font-medium text-gray-400 mb-2 uppercase tracking-wider">Classification</h4>
+                         <div class="bg-gray-900 rounded-lg p-4 border border-gray-700">
+                            <div id="modal-cvss-score-container" class="flex items-center mb-3 pb-3 border-b border-gray-700">
+                                <div id="modal-cvss-score" class="text-3xl font-bold text-red-500 mr-3 pr-3 border-r border-gray-600">0.0</div>
+                                <div class="flex-1">
+                                    <div class="text-xs text-gray-400">CVSS v3.x Score</div>
+                                    <div id="modal-cvss-severity" class="text-lg font-semibold text-white">Unknown</div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="text-xs text-gray-400 mb-1">Vector String</div>
+                                <div id="modal-cvss-vector" class="text-sm bg-gray-800 p-2 rounded break-all font-mono">N/A</div>
+                            </div>
+                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                                <div>
+                                    <div class="text-xs text-gray-400">CVE ID</div>
+                                    <div id="modal-cve-id" class="text-white font-medium">N/A</div>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-gray-400">CWE ID</div>
+                                    <div id="modal-cwe-id" class="text-white font-medium">N/A</div>
+                                </div>
+                             </div>
+                         </div>
+                     </div>
+
+                     <div class="mb-6">
+                         <h4 class="text-sm font-medium text-gray-400 mb-2 uppercase tracking-wider">Tags</h4>
+                         <div id="modal-tags" class="flex flex-wrap gap-1"></div>
+                     </div>
+
+                     <div class="mb-6">
+                         <h4 class="text-sm font-medium text-gray-400 mb-2 uppercase tracking-wider">References</h4>
+                         <ul id="modal-references" class="space-y-2 max-h-40 overflow-y-auto pr-2"></ul>
+                     </div>
+
+                     <div class="mb-6" id="modal-metadata-container">
+                         <h4 class="text-sm font-medium text-gray-400 mb-2 uppercase tracking-wider">Metadata</h4>
+                         <div id="modal-metadata" class="bg-gray-900 rounded-lg p-4 text-sm max-h-40 overflow-y-auto border border-gray-700 pr-2"></div>
+                     </div>
+                 </div>
+
+                 <div class="w-full md:w-2/3 flex flex-col overflow-hidden flex-1">
+                     <div class="p-6 border-b border-gray-700 flex-shrink-0">
+                         <h4 class="text-sm font-medium text-gray-400 mb-2 uppercase tracking-wider">Description</h4>
+                         <p id="modal-description" class="text-white whitespace-pre-wrap"></p>
+                     </div>
+
+                     <div class="flex-1 flex flex-col overflow-hidden">
+                         <div class="px-6 py-3 border-b border-gray-700 flex-shrink-0">
+                             <h4 class="text-sm font-medium text-gray-400 uppercase tracking-wider">Template Code (YAML)</h4>
+                        </div>
+                         <div id="modal-code-container" class="flex-1 overflow-auto bg-[#282c34] p-1">
+                            <pre class="h-full m-0"><code class="language-yaml h-full block p-4 text-sm">Loading code...</code></pre>
+                        </div>
+                     </div>
+                 </div>
+            </div>
+             <div class="flex flex-wrap justify-between items-center gap-4 px-6 py-4 border-t border-gray-700 bg-gray-900 bg-opacity-50 flex-shrink-0">
+                 <div class="flex flex-wrap gap-3">
+                     <button id="modal-favorite-btn" class="action-button bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-all flex items-center text-sm">
+                         <i class="far fa-star mr-2"></i>
+                         <span class="modal-fav-text">Add to Favorites</span>
+                     </button>
+                     <button id="modal-github-btn" class="action-button bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-all flex items-center text-sm" disabled>
+                         <i class="fab fa-github mr-2"></i>
+                         View on GitHub
+                     </button>
+                 </div>
+                 <div class="flex flex-wrap gap-3">
+                     <button id="modal-copy-id-btn" class="action-button bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-all flex items-center text-sm">
+                         <i class="far fa-copy mr-2"></i>
+                         Copy ID
+                     </button>
+                      <button id="modal-copy-code-btn" class="action-button bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-all flex items-center text-sm">
+                         <i class="far fa-copy mr-2"></i>
+                         Copy Code
+                     </button>
+                     <button id="modal-download-btn" class="action-button cyber-button flex items-center text-sm">
+                         <i class="fas fa-download mr-2"></i>
+                         Download YAML
+                     </button>
+                 </div>
+             </div>
+        </div>
+    </div>
+
+    <div id="repo-modal" class="fixed inset-0 z-[70] flex items-center justify-center hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-70 backdrop-blur-sm modal-bg-close"></div>
+        <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-xl w-full max-w-lg overflow-hidden relative z-[71] border border-gray-700 m-4">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-700">
+                 <h3 class="text-xl font-semibold text-white">Load Remote Repository</h3>
+                 <button class="modal-bg-close text-gray-400 hover:text-white transition-colors"><i class="fas fa-times modal-bg-close"></i></button>
+            </div>
+            <div class="p-6 text-gray-300">
+                <p class="mb-4">This feature would allow loading templates from a GitHub repository.</p>
+                <p class="p-4 bg-yellow-900 bg-opacity-40 border border-yellow-700 rounded-lg text-yellow-300 text-sm">
+                    <i class="fas fa-exclamation-triangle mr-2"></i> This functionality is not implemented in this static version.
+                </p>
+                <div class="mt-6 flex justify-end">
+                     <button class="modal-bg-close bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors text-sm">
+                         Close
+                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-4 right-4 z-[100] min-w-[250px] max-w-sm bg-gray-900 text-white px-4 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-y-[200%] opacity-0 border border-gray-700 flex items-center">
+        <div id="toast-icon" class="mr-3 text-green-400 flex-shrink-0">
+            <i class="fas fa-check-circle text-xl"></i>
+        </div>
+        <div class="flex-1">
+            <p class="font-medium text-sm" id="toast-message">Action completed successfully!</p>
+            <p class="text-xs text-gray-400" id="toast-description"></p>
+        </div>
+        <button id="toast-close" class="ml-4 text-gray-400 hover:text-white flex-shrink-0">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <div id="settings-panel" class="fixed inset-y-0 right-0 z-[80] w-full max-w-xs bg-gradient-to-br from-gray-800 to-gray-900 shadow-lg transform transition-transform duration-300 translate-x-full border-l border-gray-700 overflow-y-auto">
+         <div class="fixed inset-0 bg-black bg-opacity-50 z-[-79] hidden settings-backdrop modal-bg-close"></div>
+        <div class="p-6 h-full flex flex-col">
+             <div class="flex items-center justify-between mb-6 flex-shrink-0">
+                <h3 class="text-xl font-semibold text-white">Settings</h3>
+                <button id="settings-close" class="text-gray-400 hover:text-white transition-colors"><i class="fas fa-times"></i></button>
+            </div>
+             <div class="space-y-8 flex-grow">
+                <div>
+                    <h4 class="text-sm font-medium text-gray-400 mb-3 uppercase tracking-wider">Appearance</h4>
+                    <div class="space-y-4 bg-gray-900 bg-opacity-30 p-4 rounded-lg border border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <label for="setting-dark-mode" class="text-sm text-white cursor-pointer">Dark Mode</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="setting-dark-mode" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                         <div class="flex items-center justify-between">
+                            <label class="text-sm text-white">Animations</label>
+                             <span class="text-xs text-gray-500">(Enabled)</span>
+                        </div>
+                    </div>
+                </div>
+                 <div>
+                     <h4 class="text-sm font-medium text-gray-400 mb-3 uppercase tracking-wider">Data Management</h4>
+                     <div class="space-y-3 bg-gray-900 bg-opacity-30 p-4 rounded-lg border border-gray-700">
+                         <button id="setting-reload-templates" class="w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors text-sm flex items-center justify-center">
+                            <i class="fas fa-sync-alt mr-2"></i>Reload Page & Data
+                         </button>
+                         <button id="setting-clear-favorites" class="w-full bg-yellow-700 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors text-sm flex items-center justify-center">
+                             <i class="fas fa-trash-alt mr-2"></i>Clear Favorites
+                         </button>
+                         <button id="setting-clear-storage" class="w-full bg-red-700 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors text-sm flex items-center justify-center">
+                            <i class="fas fa-bomb mr-2"></i>Clear All Local Data
+                         </button>
+                         <p class="text-xs text-gray-500 mt-2">Clearing all data resets favorites and settings.</p>
+                     </div>
+                 </div>
+                 <div>
+                     <h4 class="text-sm font-medium text-gray-400 mb-3 uppercase tracking-wider">About</h4>
+                     <div class="text-xs text-gray-400 space-y-1 bg-gray-900 bg-opacity-30 p-4 rounded-lg border border-gray-700">
+                        <p>Nuclei Explorer Pro v1.1 (Local)</p>
+                        <p>Uses data from local <code class="text-xs bg-gray-700 px-1 rounded">templates.json</code>.</p>
+                        <p>Libraries used.</p>
+                     </div>
+                 </div>
+             </div>
+        </div>
+    </div>
+
+    <div id="help-modal" class="fixed inset-0 z-[70] flex items-center justify-center hidden">
+         <div class="absolute inset-0 bg-black bg-opacity-70 backdrop-blur-sm modal-bg-close"></div>
+         <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden relative z-[71] border border-gray-700 flex flex-col m-4">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-700 flex-shrink-0">
+                 <h3 class="text-xl font-semibold text-white flex items-center">
+                    <i class="fas fa-question-circle text-indigo-400 mr-2"></i>
+                    Nuclei Explorer Pro Help
+                </h3>
+                <button class="modal-bg-close text-gray-400 hover:text-white transition-colors"><i class="fas fa-times"></i></button>
+            </div>
+             <div class="p-6 overflow-y-auto flex-grow text-gray-300 text-sm space-y-6">
+                 <section>
+                     <h4 class="text-lg font-semibold text-white mb-2">Overview</h4>
+                     <p>Explore Nuclei templates loaded from local <code class="text-xs bg-gray-700 px-1 rounded">templates.json</code>.</p>
+                 </section>
+                 <section>
+                      <h4 class="text-lg font-semibold text-white mb-2">Key Features</h4>
+                      <ul class="list-disc list-inside space-y-2">
+                          <li>Dashboard stats overview.</li>
+                          <li>Multiple Views: Grid (<kbd class="bg-gray-700 px-1 rounded text-xs">Alt+1</kbd>), List (<kbd>Alt+2</kbd>), Table (<kbd>Alt+3</kbd>).</li>
+                          <li>Fuzzy Search (<kbd>/</kbd> or <kbd>Ctrl+F</kbd>) across multiple fields.</li>
+                          <li>Advanced Filtering: Severity, Type, Author, Tags (comma-sep AND).</li>
+                          <li>Sorting by various criteria.</li>
+                          <li>Detailed View (click item) with classification, references, metadata, YAML code.</li>
+                          <li>Actions: Favorite (<kbd>f</kbd> toggles filter), copy ID/code, download YAML, view on GitHub.</li>
+                          <li>Pagination (<kbd>←</kbd> / <kbd>→</kbd>).</li>
+                          <li>Persistence: Preferences (Dark Mode (<kbd>t</kbd>), View, Items/Page, Sort, Favorites) saved locally.</li>
+                          <li>Settings (<kbd>Ctrl+,</kbd>) to toggle theme or clear data.</li>
+                      </ul>
+                 </section>
+                 <div class="mt-6 p-5 bg-indigo-900 bg-opacity-30 rounded-lg border border-indigo-800">
+                     <h4 class="text-lg font-semibold text-white mb-3 flex items-center">
+                         <i class="fas fa-save text-green-400 mr-2"></i>
+                         Persistence Note
+                     </h4>
+                     <p>Settings/favorites stored in browser's Local Storage. Clearing browser data resets them.</p>
+                 </div>
+             </div>
+             <div class="flex justify-end px-6 py-4 border-t border-gray-700 flex-shrink-0">
+                <button class="modal-bg-close cyber-button"><i class="fas fa-check mr-2"></i>Got it!</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js" defer></script>
+</body>
+</html>
